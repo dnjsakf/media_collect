@@ -1,0 +1,10 @@
+config/database.py
+
+logs/*
+
+__pycache__
+*.pyc
+**/drivers/*
+
+.venv
+.vscode
