@@ -1,8 +1,11 @@
 # media_collect
 
 
-# Run Celery
+## Run Celery
 celery worker -A tasks:crawl_worker --concurrency=10 --pool=gevent --loglevel=INFO
 
-# Run Celery Daemon
+## Run Celery Daemon
 celery worker -A tasks:crawl_worker --concurrency=10 --pool=gevent --loglevel=INFO -D
+
+## Run Flask
+python app.py
