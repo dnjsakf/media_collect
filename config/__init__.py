@@ -5,11 +5,11 @@ import config.smtp as smtp
 
 # Mac: Darwin, Windows: Windwos
 SYSTEM_OS = platform.system()
+DOT_ENV = os.path.join(os.path.abspath("config"), ".env")
 
 
 CONNECT_URL_FMT="{protocol}://{host}:{port}/{database}"
 CONNECT_AUTH_URL_FMT="{protocol}://{username}:{password}@{host}:{port}/{database}"
-
 
 LOGGING_LEVEL = "DEBUG"
 LOGGING_PATH = os.path.abspath("logs")
@@ -59,3 +59,6 @@ SMTP_FROM_ADDR = smtp.SMTP_FROM_ADDR
 
 # 수신자 [ (name, address), ... ]
 SMTP_TO_ADDRS = smtp.SMTP_TO_ADDRS
+
+
+FLASK_CONFIG = os.path.join(os.path.abspath("config"), "flask_{env}.py")

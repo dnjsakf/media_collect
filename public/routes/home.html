@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <title>미디어 수집기</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="text/javascript">
+      const response = axios.get("/home/init");
+      
+      response.then(function(result){
+        const root = document.getElementById("root");
+        root.innerHTML = result.data;
+      });
+      response.catch(function(error){
+        console.error(error);
+      });
+    </script>
+  </body>
+</html>
