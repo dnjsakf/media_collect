@@ -2,8 +2,19 @@
 
 html, body { width: 100%; height: 100% }
 
+#root { width: 100%; height: 100%; }
+#root > header { z-index: 200; position: absolute; width: 100%; height: 50px; }
+#root > section { z-index: 100; position: relative; width: 100%; height: 100%; padding-top: 50px; padding-bottom: 50px; }
+#root > footer { z-index: 200; position: relative; width: 100%; height: 50px; bottom: 50px; }
+
+.wrapper { width: inherit; height: inherit; }
+
 .vercial > .vercial-wrapper { width: 100%; height: 100%; }
-.vercial > .vercial-wrapper > div { float: left; }
+.vercial > .vercial-wrapper > div { position: relative; }
+.vercial > .vercial-wrapper > div.vertical-left { z-index: 200; float: left; width: 200px; height: 100%; }
+.vercial > .vercial-wrapper > div.vertical-right { z-index: 100; float: none; width: 100%; height: 100%; padding-left: 200px; }
+
+.p10 { padding: 10px; }
 
 .w100 { width: 100px; }
 .w110 { width: 110px; }

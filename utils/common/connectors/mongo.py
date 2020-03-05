@@ -3,27 +3,32 @@ from utils.common import logging
 from pymongo import MongoClient
 from config import MONGO_CONNECT
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("{}.MongoDB".format(__name__))
 
 class MongoDB(object):
   conn = None
     
-  def connect(self, *args, **kwargs):
-    conn = MongoClient(MONGO_CONNECT)
+  @classmethod
+  def connect(cls, *args, **kwargs):
+    cls.conn = MongoClient(MONGO_CONNECT, maxPoolSize=10)
     try:
-      info = conn.server_info()
-
-      logger.info( "MongoDB connected!!!" )
-      logger.debug( info )
+      logger.debug( cls.conn.server_info() )
+      logger.info( "MongoDB connected." )
     except Exception as e:
       logger.error( e )
     finally:
-      return conn
+      return cls.conn
 
-  def close(self):
-    if self.conn is not None:
-      self.conn.close()
+  @classmethod
+  def close(cls):
+    if cls.conn is not None:
+      cls.conn.close()
+    logger.info( "MongoDB disconnected." )
 
-  @property
-  def conn(self):
-    return self.conn
+  @classmethod
+  def clear(cls):
+    cls.close()
+    cls.conn = None
+    logger.info( "MongoDB clear." )
+
+  

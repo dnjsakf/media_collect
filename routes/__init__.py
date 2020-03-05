@@ -33,6 +33,6 @@ def load_routes(app):
   def postIndexFrame():
     return jsonify({"html":render_template('templates/layout/frame.html')})
     
-  import routes.home
+  from routes import home, content
   
   return app
