@@ -1,4 +1,5 @@
 config/database.py
+config/smtp.py
 
 logs/*
 

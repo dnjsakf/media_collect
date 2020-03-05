@@ -1,25 +1,29 @@
+import traceback
+from tasks import crawl_worker
+
 from utils.common import logging
-
 from utils.common.connectors import Connector
-from utils.crawler import Crawler, SeleniumCrawler
-from utils.crawler.parser import SeleniumParser
-
-#conn = Connector.connect('mongo')
+from utils.crawler import SeleniumCrawler
+from utils.crawler.parser.SeleniumParser import parseImage
 
 logger = logging.getLogger(__name__)
 
-def crawl_images(url=None):
+@crawl_worker.task #(ignore_result=True)
+def getImages(url=None):
   if url is None: raise Exception("url is None.")
 
-  crawler = SeleniumCrawler(timeout=10)
+  crawler = None
 
   try:
-    parser = SeleniumParser.imageParser
-    result = crawler.run(url, callback=parser)
-  except Exception as e:
-    logger.error( e )
-  finally:
-    crawler.close()
-
-  return result
+    crawler = SeleniumCrawler(timeout=10)
+    result = crawler.run(url, parser=parseImage)
     
+    if result is not None:    
+      logger.info( "{} - count: {}".format(__name__, len(result)) )
+      
+  except Exception as e:
+    logger.error( traceback.format_exc() )
+  finally:
+    if crawler is not None:
+      crawler.close()
+      
