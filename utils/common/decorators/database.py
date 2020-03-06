@@ -6,29 +6,41 @@ from pymongo.command_cursor import CommandCursor
 from utils.common import logging
 from utils.common.connectors import Connector
 
+logger = logging.getLogger("{}.{}".format(__name__, "MongoDbDecorator"))
+
 class MongoDbDecorator(object):
   @classmethod
   def connect(cls, database=None, document=None):
-    logger = logging.getLogger("{}.{}".format(__name__, cls.__name__))
-
     def decorator(func):
       @wraps(func)
       def wrapper(*args, **kwargs):
-        conn = Connector.connect("mongo")
-
-        items = func(conn=conn[database][document])
-
-        if( isinstance( items, CommandCursor ) or isinstance( items, Cursor ) ):
-          items = list(items)
-        else:
-          items = [items]
-
-        logger.info( "count: {}".format( len(items) ) )
-        
-        #Connector.close()
-        #Connector.clear()
-
-        return items
+        return func(Connector.connect("mongo")[database][document], *args, **kwargs)
       return wrapper
     return decorator
 
+  @classmethod
+  def select(cls, func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+      items = func(*args, **kwargs)
+
+      if( isinstance( items, CommandCursor ) or isinstance( items, Cursor ) ):
+        items = list(items)
+      else:
+        items = [items]
+
+      logger.info( "count: {}".format( len(items) ) )
+
+      return items
+    return wrapper
+
+  @classmethod
+  def insert(cls, func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+      result = func(*args, **kwargs)
+
+      logger.info( "inserted: {}".format( len(result.inserted_ids) ) )
+
+      return result
+    return wrapper

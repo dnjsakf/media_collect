@@ -1,0 +1,11 @@
+<ul id="product_list">
+  {% for product in product_list %}
+  <li>
+    <a href="{{ product.link }}">
+      <img src="{{ product.image }}">
+      <span>{{ product.name }}</span>
+      <span>{{ product.price }}</span>
+    </a>
+  </li>
+  {% endfor %}
+</ul>

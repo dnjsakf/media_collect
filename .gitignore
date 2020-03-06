@@ -1,6 +1,8 @@
 config/database.py
 config/smtp.py
 
+test.py
+
 logs/*
 
 __pycache__

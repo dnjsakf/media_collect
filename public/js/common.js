@@ -12,6 +12,22 @@ function getData(event){
   }).catch(function(error){
     console.error(error);
   });
+}
+
+function getProductList(event){
+  event.preventDefault();
+
+  const response = axios({
+    method: "get"
+    , url: "/shop/product/coupang"
+    , baseurl: "http://localhost:3000/"
+  }).then(function(result){
+    console.log( result )
+    const root = document.querySelector("#content > .wrapper");
+    root.innerHTML = result.data.html;
+  }).catch(function(error){
+    console.error(error);
+  });
   
 }
 
@@ -28,8 +44,11 @@ const response = axios({
   js.id = "data_js"
   js.type = "text/javascript";
   js.text = `
-  let btn = document.getElementById("btn_get_data");
-  btn.addEventListener("click", getData);
+  let btn_get_data = document.getElementById("btn_get_data");
+  btn_get_data.addEventListener("click", getData);
+  
+  let btn_get_product_list = document.getElementById("btn_get_product_list");
+  btn_get_product_list.addEventListener("click", getProductList);
   `;
   document.body.appendChild(js);
 

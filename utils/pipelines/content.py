@@ -2,8 +2,8 @@ from utils.common import logging
 from utils.common.decorators.database import MongoDbDecorator as mongo
 
 @mongo.connect("test", "contents")
-def getData(conn=None):
-  # return conn.find_one()
+@mongo.select
+def getData(conn):
   return conn.aggregate([
     { 
       "$match": { "cate": "stars" } 

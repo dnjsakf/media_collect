@@ -1,5 +1,6 @@
 import os
 import requests
+import traceback
 
 from bs4 import BeautifulSoup as bs
 
@@ -9,12 +10,12 @@ from selenium.webdriver.chrome.options import Options
 from config import SELENIUM_DRIVER_PATH, SYSTEM_OS
 from utils.common import logging
 
-logger = logging.getLogger(__name__)
 
 class Middleware(object):
   driver = None
 
   def __init__(self, *args, **kwargs):
+    self.logger = logging.getLogger(self.__class__.__name__)
     pass
 
   def get(self, url, callback=None):
@@ -42,7 +43,7 @@ class RequestMiddleware(Middleware):
       callback(response=html)
 
     except Exception as e:
-      logger.error( e )
+      self.logger.error( e )
 
   def getPageSource(self):
     return self.driver.text
@@ -59,34 +60,33 @@ class SeleniumMiddleware(Middleware):
     if kwargs.get("timeout") is not None:
       self.timeout = int(kwargs.get("timeout"))
 
+    if kwargs.get("chrome_options") is not None:
+      self._options.extend(kwargs.get("chrome_options"))
+
     # Setting Chrome WebDriver Options
-    options = Options()
+    chrome_options = Options()
     for opt in self._options:
-      options.add_argument( opt )
+      chrome_options.add_argument( opt )
       
     executable_path=SELENIUM_DRIVER_PATH
     service_log_path = "/dev/null"
     if SYSTEM_OS == "Windows":
-      
       filename, extension = os.path.splitext(executable_path)
       if extension == "":
         executable_path += ".exe"
         
       # Disable the message 'DevTools listening on ~'
-      options.add_experimental_option('excludeSwitches', ['enable-logging'])
+      chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
     
       service_log_path = "NUL"
 
     try:
-      driver = webdriver.Chrome(
+      self.driver = webdriver.Chrome(
         executable_path=SELENIUM_DRIVER_PATH
-        , chrome_options=options
+        , chrome_options=chrome_options
         , service_log_path=service_log_path
       )
-      self.driver = driver
-
     except Exception as e:
-      logger.error( e )
       raise e
 
     Middleware.__init__(self, *args, **kwargs)
@@ -99,11 +99,13 @@ class SeleniumMiddleware(Middleware):
     
     try:
       self.driver.get(url)
-      result = parser(response=self.driver, timeout=self.timeout)
+
+      kwargs = { "timeout": self.timeout }
+
+      return parser(self.driver, **kwargs)
     except Exception as e:
-      logger.error( e )
-    finally:
-      return result
+      self.logger.error( traceback.format_exc() )
+      return None
 
   def getPageSource(self):
     return self.driver.page_source
