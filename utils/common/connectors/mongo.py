@@ -1,3 +1,5 @@
+import traceback
+
 from utils.common import logging
 
 from pymongo import MongoClient
@@ -10,12 +12,14 @@ class MongoDB(object):
     
   @classmethod
   def connect(cls, *args, **kwargs):
-    cls.conn = MongoClient(MONGO_CONNECT, maxPoolSize=10)
+    cls.conn = None
     try:
+      cls.conn = MongoClient(MONGO_CONNECT, maxPoolSize=10)
+
       logger.debug( cls.conn.server_info() )
       logger.info( "MongoDB connected." )
     except Exception as e:
-      logger.error( e )
+      logger.error( traceback.format_exc() )
     finally:
       return cls.conn
 

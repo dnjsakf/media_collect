@@ -8,11 +8,11 @@ class Connector(object):
   conn = None
 
   @classmethod
-  def connect(cls, dbname, *args, **kwargs):
-    if dbname == "mongo" and cls.database != MongoDB:
+  def connect(cls, dbms, *args, **kwargs):
+    if dbms == "mongo" and cls.database != MongoDB:
       cls.database = MongoDB
       cls.conn = cls.database.connect()
-    elif dbname == "others":
+    elif dbms == "others":
       pass
 
     return cls.conn

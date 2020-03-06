@@ -15,7 +15,7 @@ LOGGING_LEVEL = "DEBUG"
 LOGGING_PATH = os.path.abspath("logs")
 LOGGING_FILE = True
 
-
+MONGO_DATABASE = db.MONGO_DATABASE
 MONGO_CONNECT = CONNECT_AUTH_URL_FMT.format(
   protocol=db.MONGO_PROTOCOL    # mongodb
   , username=db.MONGO_USERNAME

@@ -22,6 +22,7 @@ def pasreCoupangProductList(response, **kwargs):
       item = dict()
       item["shop"] = "coupang"
       item["id"] = str(uuid.uuid4())
+      item["ori_id"] = product.get_attribute("data-product-id")
       item["link"] = product.get_attribute("href")
       item["image"] = product.find_element_by_xpath("dl/dt/img").get_attribute("src")
       item["name"] = product.find_element_by_xpath("dl/dd/div/div[2]").text
