@@ -1,0 +1,30 @@
+<!-- Menu Manage List -->
+<div class="content-wrapper menu-list">
+  <div class="content-header">
+    <button id="btn_insert_menu">insert</button>
+  </div>
+  <div class="content-body">
+    <ul class="content-list row row-10 p5">
+      <li class="row-wrapper">
+          {% for header in menu_headers %}
+          <div class="col header {{ header }} W10">
+            <span>{{ header }}</span>
+          </div>
+          {% endfor %}
+      </li>
+      {% for menu in menu_list %}
+      <li class="row-wrapper" row="1">
+        {% for header in menu_headers %}
+        <div class="col {{ menu[header] }} W10">
+          <span>{{ menu[header] }}</span>
+        </div>
+        {% endfor %}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="content-footer">
+    <div>pagination</div>
+  </div>
+</div>
+<!-- Menu Manage List -->

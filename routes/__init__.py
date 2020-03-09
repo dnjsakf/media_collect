@@ -24,15 +24,14 @@ def createApp(env="dev"):
     return app
     
 def load_routes(app):
+  from routes import common, contents, manage
 
-  @app.route("/", methods=["GET", "POST"])
+  @app.route("/", methods=["GET"])
   def getIndex():
     return render_template('index.html')
-    
-  @app.route("/frame", methods=["POST"])
-  def postIndexFrame():
-    return jsonify({"html":render_template('templates/layout/frame.html')})
-    
-  from routes import home, content, shop
+
+  @app.route("/temp/<string:menu_grp_id>/<string:menu_id>", methods=["GET"])
+  def loadMenuTemplates(menu_grp_id=None, menu_id=None):
+    return jsonify({"html": render_template("templates/{}/{}.html".format(menu_grp_id, menu_id))})
   
   return app

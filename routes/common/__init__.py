@@ -1,0 +1,1 @@
+from routes.common import menus

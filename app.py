@@ -4,8 +4,6 @@ import dotenv
 from routes import createApp
 from config import DOT_ENV
 
-from utils.pipelines import content
-
 if __name__ == '__main__':
     dotenv.load_dotenv( dotenv_path=DOT_ENV )
     server = createApp('dev')

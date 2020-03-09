@@ -22,6 +22,22 @@ class MongoDbDecorator(object):
     return decorator
 
   @classmethod
+  def select_one(cls, func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+      item = func(*args, **kwargs)
+
+      if( isinstance(item, CommandCursor) or isinstance(item, Cursor)):
+        item = list(item)
+      logger.info("count: {}".format( item ))
+
+      item = item[0] if len(item) != 0 else None
+      logger.info("item: {}".format( item ))
+
+      return item
+    return wrapper
+
+  @classmethod
   def select(cls, func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -39,6 +55,18 @@ class MongoDbDecorator(object):
 
   @classmethod
   def insert(cls, func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+      result = func(*args, **kwargs)
+
+      logger.info("inserted: {}".format(result))
+
+      return result
+    return wrapper
+
+
+  @classmethod
+  def insert_many(cls, func):
     @wraps(func)
     def wrapper(*args, **kwargs):
       result = func(*args, **kwargs)
