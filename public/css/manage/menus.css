@@ -1,0 +1,24 @@
+#navigator { z-index: 200; position: absolute; height: 30px; }
+#content { z-index: 100; position: relative; padding-top: 30px; width: 100%; height: 100%; }
+
+#content .row { display: table; width: 100%; height: 100%; }
+#content .row > .row-wrapper { display: table-row; width: 100%; }
+#content .row > .row-wrapper > .col { display: table-cell; vertical-align: middle; }
+#content .row > .row-wrapper > .col.header { text-align: center; font-weight: bold;; }
+
+#content > .content-wrapper { position: relative; width: 100%; height: 100%; }
+#content > .content-wrapper > .content-header { z-index: 200; position: absolute; width: 100%; height: 30px; background-color: red; }
+#content > .content-wrapper > .content-footer { z-index: 201; position: relative; bottom: 30px; width: 100%; height: 30px; background-color: blue; }
+#content > .content-wrapper > .content-body { z-index: 100; position: relative; padding-top: 30px; padding-bottom: 30px; width: 100%; height: 100%; }
+
+#content .content-list { width: 100%; height: 100%; }
+
+#content ul.row-10 > li { height: 10%; }
+#content ul.row-25 > li { height: 4%; }
+#content ul.row-50 > li { height: 2%; }
+#content ul.row-100 > li { height: 1%; }
+
+#menu_form { width: 100%; height: 100%; }
+#menu_form input { border: 0; padding: 5px; width: 40%; height: 30px; margin: 5px; border-radius: 1em; }
+#menu_form input.invalid { box-shadow: 0 0 0.5em 0 red inset; }
+#menu_form input.valid { box-shadow: 0 0 0.5em 0 blue inset; }

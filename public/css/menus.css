@@ -1,0 +1,60 @@
+#menus { overflow-y: scroll; box-sizing: border-box; height: 100%; border: 1px solid #ce93d8; padding: 5px; }
+#menus * { box-sizing: border-box; }
+
+#menus .divider { background-color: #8e24aa; margin-top: 5px; margin-bottom: 10px; }
+
+#menus .navi-wrapper { height: 2em; }
+#menus .navi-wrapper .breadcrumb { font-size: 1.2em;  color: #ba68c8; opacity: 50%;  }
+#menus .navi-wrapper .breadcrumb:last-child { font-weight: bold; color: #6a1b9a; opacity: 100%; }
+#menus .navi-wrapper .breadcrumb:before { font-size: 1.2em; color: #004d40; }
+
+#menus .menu-wrapper { padding: 5px; }
+#menus .menu-wrapper dt.menu-header {
+  font-weight: bold;
+  font-size: 20px;
+  padding-left: 7px;
+  box-shadow: 5px 0 0 0 #ce93d8 inset;
+}
+
+#menus .menu-wrapper dt.menu-header:hover {
+  padding-left: 17px;
+  box-shadow: 15px 0 0 0 #ce93d8 inset;
+  animation-duration: 500ms;
+  animation-name: select_navi;
+}
+#menus .menu-wrapper dt.menu-header > label { 
+  display: inline-block; 
+  width: 100%; 
+  color: #4a148c; 
+  font-size: 0.8em;
+  cursor: pointer;
+}
+
+#menus .menu-wrapper dl.menu-list { display: none; }
+#menus .menu-wrapper dl.menu-list > dd { padding: 3px 3px 3px 15px; }
+#menus .menu-wrapper dl.menu-list > dd > a { 
+  display: inline-block; 
+  width:100%;
+  font-size: 16px; 
+  text-decoration: none; 
+  color: #4a148c; 
+  padding-left: 7px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  box-shadow: 5px 0 0 0 #ce93d8 inset;
+  cursor: pointer;
+}
+#menus .menu-wrapper dl.menu-list > dd:hover > a { 
+  font-weight: bold;
+  padding-left: 17px; 
+  padding-top: 5px;
+  padding-bottom: 5px;
+  box-shadow: 15px 0 0 0 #ce93d8 inset;
+  animation-duration: 500ms;
+  animation-name: select_navi;
+}
+#menus .menu-wrapper dl.menu-list > dd:not(:hover) > a { opacity: 50%; }
+
+#menus .menu-wrapper input.clicker { display: none; }
+#menus .menu-wrapper input.clicker:checked + dl { display: block; animation-duration: 500ms; animation-name: slide_down; }
+#menus .menu-wrapper input.clicker:checked + dl > dd { animation-duration: 500ms; animation-name: slide_down; }

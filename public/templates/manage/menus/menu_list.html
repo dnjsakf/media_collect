@@ -1,30 +1,60 @@
 <!-- Menu Manage List -->
-<div class="content-wrapper menu-list">
-  <div class="content-header">
-    <button id="btn_insert_menu">insert</button>
+<div class="viewer-wrapper">
+  <div id="content_search">
+    <div class="search-wrapper">
+      search
+    </div>
   </div>
-  <div class="content-body">
-    <ul class="content-list row row-10 p5">
-      <li class="row-wrapper">
-          {% for header in menu_headers %}
-          <div class="col header {{ header }} W10">
-            <span>{{ header }}</span>
-          </div>
+  <div id="content">
+    <div class="content-wrapper">
+      <table id="content_table" class="highlight striped">
+        <thead>
+          <tr>
+            <th class="content-sel"><input type="checkbox" id="select_all" name="select_all"></th>
+            {% for header in menu_headers %}
+            <th class="{{ header }} centered">{{ header }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for menu in menu_list %}
+          <tr>
+            <td class="content-sel"><input type="checkbox" name="select_one" value="{{ menu.full_menu }}"></td>
+            {% for header in menu_headers %}
+            <td class="content-col {{ header }}">{{ menu[header] }}</td>
+            {% endfor %}
+          </tr>
           {% endfor %}
-      </li>
-      {% for menu in menu_list %}
-      <li class="row-wrapper" row="1">
-        {% for header in menu_headers %}
-        <div class="col {{ menu[header] }} W10">
-          <span>{{ menu[header] }}</span>
-        </div>
-        {% endfor %}
-      </li>
-      {% endfor %}
-    </ul>
+        </tbody>
+      </table>
+    </div>
   </div>
-  <div class="content-footer">
-    <div>pagination</div>
+  <div id="content_control">
+    <div class="control-wrapper row">
+      <div class="col s3">
+        <div class="support-wrapper">
+        </div>
+      </div>
+      <div class="col s6">
+        <div class="pagination-wrapper">
+          <ul id="pagination" class="pagination">
+            <li class="disabled"><a href="#!"><i class="material-icons">chevron_left</i></a></li>
+            <li class="active"><a href="#!">1</a></li>
+            <li class="waves-effect"><a href="#!">2</a></li>
+            <li class="waves-effect"><a href="#!">3</a></li>
+            <li class="waves-effect"><a href="#!">4</a></li>
+            <li class="waves-effect"><a href="#!">5</a></li>
+            <li class="waves-effect"><a href="#!"><i class="material-icons">chevron_right</i></a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="col s3">
+        <div class="crud-wrapper">
+          <button>삭제</button>
+          <button id="btn_insert_menu">생성</button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 <!-- Menu Manage List -->

@@ -30,8 +30,12 @@ def load_routes(app):
   def getIndex():
     return render_template('index.html')
 
-  @app.route("/temp/<string:menu_grp_id>/<string:menu_id>", methods=["GET"])
-  def loadMenuTemplates(menu_grp_id=None, menu_id=None):
-    return jsonify({"html": render_template("templates/{}/{}.html".format(menu_grp_id, menu_id))})
+  @app.route("/js/<path:path>", methods=["GET"])
+  def loadJavaScript(path=None):
+    return jsonify({"html": render_template("js/{}.js".format(path))})
+
+  @app.route("/tmpl/<path:path>", methods=["GET"])
+  def loadTemplates(path=None):
+    return jsonify({"html": render_template("templates/{}.html".format(path))})
   
   return app

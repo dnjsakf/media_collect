@@ -6,237 +6,91 @@
   <title>Media Collect</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
   <style type="text/css">
-    * { box-sizing: border-box; color: black; }
-
-    html, body { width: 100%; height: 100%; background-color: white; }
-    html, body, dl, dd, dt, ul, h1, h2, h3, h4, h5, h6 { padding: 0; margin: 0; }
-    ul { list-style: none; }
-
-    #root { width: 100%; height: 100%; }
-    #root > header { z-index: 200; position: absolute; width: 100%; height: 60px; }
-    #root > section { z-index: 100; position: relative; width: 100%; height: 100%; padding-top: 60px; padding-bottom: 60px; }
-    #root > footer { z-index: 200; position: relative; width: 100%; height: 60px; bottom: 60px; }
-
-    .wrapper { width: inherit; height: inherit; }
-
-    .vertical > .vertical-wrapper { width: 100%; height: 100%; }
-    .vertical > .vertical-wrapper > div { position: relative; box-shadow: 0 0 0 1px green inset; }
-    .vertical > .vertical-wrapper > div.vertical-left { z-index: 200; float: left; width: 200px; height: 100%; background-color: lightgreen; }
-    .vertical > .vertical-wrapper > div.vertical-right { z-index: 100; float: none; width: 100%; height: 100%; padding-left: 200px; background-color: lightgreen; }
-
+    html, body { padding: 0; margin: 0; width: 100%; height: 100%; } 
+    dl, dd, dt { padding: 0; margin: 0; }
+    
     .scroll {
-        -ms-overflow-style: none; /* IE and Edge */
-        scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* IE and Edge */
+      scrollbar-width: none; /* Firefox */
     }
     .scroll::-webkit-scrollbar {
-        display: none; /* Chrome, Safari, Opera*/
+      display: none; /* Chrome, Safari, Opera*/
     }
-
-    .p5 { padding: 5px; }
-    .p10 { padding: 10px; }
-
-    .m5 { margin: 5px; }
-    .m10 { margin: 10px; }
-
-    .w10 { width: 10px; }
-    .w20 { width: 20px; }
-    .w30 { width: 30px; }
-    .w40 { width: 40px; }
-    .w50 { width: 50px; }
-    .w60 { width: 60px; }
-    .w70 { width: 70px; }
-    .w80 { width: 80px; }
-    .w90 { width: 90px; }
-    .w100 { width: 100px; }
-    .w110 { width: 110px; }
-
-    .W10 { width: 10%; }
-    .W20 { width: 20%; }
-    .W30 { width: 30%; }
-    .W40 { width: 40%; }
-    .W50 { width: 50%; }
-    .W60 { width: 60%; }
-    .W70 { width: 70%; }
-    .W80 { width: 80%; }
-    .W90 { width: 90%; }
-    .W100 { width: 100%; }
-
-    .align-left { text-align: left!important; }
-    .align-right { text-align: right!important; }
-    .align-center { text-align: center!important; }
-  </style>
-  <style type="text/css">
-    @keyframes select_navi {
-      from { padding-left: 10px; box-shadow: 0 0 0 0 inherit inset; }
-      to {  padding-left: 12px; box-shadow: 10px 0 0  0 inherit inset; }
+    
+    .col { height: 100%; }
+    .row { margin: 0; }
+    
+    #root { position: relative; width: 100%; height: 100%; }
+    
+    #header { z-index: 200; position: absolute; padding: 0; margin: 0; width: 100%; height: 50px;  }
+    #section { z-index: 100; position: relative; padding-top: 50px; margin: 0; height: 100%; }
+    #section > .col:not(:first-child) { padding-left: 0; }
+    
+    /* Contents */
+    #viewer { height: 100%; }
+    #viewer .viewer-wrapper { height: 100%; }
+    
+    #content table th { text-align: center; }
+    #content table td { padding-top: 3px; padding-bottom: 3px; }
+        
+    #content_control .control-wrapper { padding: 10px 0; }
+    #content_control .pagination-wrapper .pagination { width: 300px; margin: 0 auto; }
+    #content_control .crud-wrapper { float: right; }
+    
+    #content .content-sel { text-align: center; }
+    #content .content-sel input[type="checkbox"] { position: relative; opacity: 100; pointer-events: auto; }
+    
+    .modal.modal-fixed-header .modal-header {
+      position: absolute;
+      box-sizing: border-box;
+      border-bottom: 1px solid rgba(0,0,0,0.1);
+      height: 56px;
+      width: 100%;
+      padding: 3px 6px;
     }
-    @keyframes slide_down {
-      from { margin-top: -10%; opacity: 0; }
-      to {  margin-top: 0; opacity: 100% }
+    .modal.modal-fixed-header .modal-header a { margin: 6px 0; font-size: 1.3em; }
+    
+    .modal.modal-fixed-header.modal-fixed-footer .modal-content {
+      top: 56px;
+      height: calc(100% - 112px);
     }
+    
   </style>
-  <style type="text/css">
-    .menu-wrapper * { user-select: none; }
-    .menu-wrapper { padding: 5px; background-color: lightgreen; border-bottom: 1px solid green; border-left: 1px solid green; border-right: 1px solid green; }
-    .menu-wrapper:first-child { border-top: 1px solid green; }
-    .menu-wrapper label:hover { cursor: pointer; }
-
-    .menu-wrapper dt.menu-header { font-weight: bold; font-size: 20px; padding-left: 7px; box-shadow: 5px 0 0 0 green inset; }
-    .menu-wrapper dt.menu-header:hover { padding-left: 12px; box-shadow: 10px 0 0 0 green inset; animation-duration: 100ms; animation-name: select_navi; }
-
-    .menu-wrapper dl.menu-list { display: none; }
-    .menu-wrapper dl.menu-list > dd { padding: 3px 3px 3px 15px; }
-    .menu-wrapper dl.menu-list > dd > a { font-size: 16px; text-decoration: none; color: black; padding-left: 7px; box-shadow: 5px 0 0 0 green inset; }
-    .menu-wrapper dl.menu-list > dd > a:hover { padding-left: 12px; box-shadow: 10px 0 0 0 green inset; animation-duration: 100ms; animation-name: select_navi; }
-
-    .menu-wrapper input.clicker { display: none; }
-    .menu-wrapper input.clicker:checked + dl { display: block; animation-duration: 500ms; animation-name: slide_down; }
-    .menu-wrapper input.clicker:checked + dl > dd { animation-duration: 500ms; animation-name: slide_down; }
-  </style>
-  <style type="text/css">
-    #navigator { z-index: 200; position: absolute; height: 30px; }
-    #content { z-index: 100; position: relative; padding-top: 30px; width: 100%; height: 100%; }
-
-    #content .row { display: table; width: 100%; height: 100%; }
-    #content .row > .row-wrapper { display: table-row; width: 100%; }
-    #content .row > .row-wrapper > .col { display: table-cell; vertical-align: middle; }
-    #content .row > .row-wrapper > .col.header { text-align: center; font-weight: bold;; }
-
-    #content > .content-wrapper { position: relative; width: 100%; height: 100%; }
-    #content > .content-wrapper > .content-header { z-index: 200; position: absolute; width: 100%; height: 30px; background-color: red; }
-    #content > .content-wrapper > .content-footer { z-index: 201; position: relative; bottom: 30px; width: 100%; height: 30px; background-color: blue; }
-    #content > .content-wrapper > .content-body { z-index: 100; position: relative; padding-top: 30px; padding-bottom: 30px; width: 100%; height: 100%; }
-
-    #content .content-list { width: 100%; height: 100%; }
-
-    #content ul.row-10 > li { height: 10%; }
-    #content ul.row-25 > li { height: 4%; }
-    #content ul.row-50 > li { height: 2%; }
-    #content ul.row-100 > li { height: 1%; }
-
-    #menu_form { width: 100%; height: 100%; }
-    #menu_form input { border: 0; padding: 5px; width: 40%; height: 30px; margin: 5px; border-radius: 1em; }
-    #menu_form input.invalid { box-shadow: 0 0 0.5em 0 red inset; }
-    #menu_form input.valid { box-shadow: 0 0 0.5em 0 blue inset; }
-  </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/menus.css') }}">
 </head>
 <body>
   <div id="root">
-    <header>
-      <div class="wrapper p10">
-        <a href="#" id="btn_home"><h1>Dochi's Collection</h1></a>
-      </div>
-    </header>
-    <section class="vertical">
-      <div class="vertical-wrapper">
-        <div id="menus" class="vertical-left">
-        </div>
-        <div id="viewer" class="vertical-right">
-          <div class="wrapper p5 ">
-            <div id="navigator">
-              <h3>right</h3>
-            </div>
-            <div id="content">
-              <!-- Menu Manage Form -->
-<div class="content-wrapper menu-form">
-  <form id="menu_form" method="POST" class="action insert" onsubmit="return false;">
-    <ul class="content-list row-10 p5">
-      <li class="row">
-        <div class="row-wrapper">
-          <div class="col header align-right menu_grp_id W10">
-            <label for="menu_grp_id">메뉴그룹ID</label>
-          </div>
-          <div class="col menu_grp_id">
-            <input type="text" id="menu_grp_id" name="menu_grp_id" placeholder="menu_grp_id">
-          </div>
-          <div class="col blank"></div>
-        </div>
-      </li>
-      <li class="row">
-        <div class="row-wrapper">
-          <div class="col header align-right menu_id W10">
-            <label for="menu_id">메뉴ID</label>
-          </div>
-          <div class="col menu_id">
-            <input type="text" id="menu_id" name="menu_id" required placeholder="menu_id">
-          </div>
-          <div class="col blank"></div>
-        </div>
-      </li>
-      <li class="row">
-        <div class="row-wrapper">
-          <div class="col header align-right menu_name W10">
-            <label for="menu_name">메뉴명</label>
-          </div>
-          <div class="col menu_name">
-            <input type="text" id="menu_name" name="menu_name" required placeholder="menu_name">
-          </div>
-          <div class="col blank"></div>
-        </div>
-      </li>
-      <li class="row">
-        <div class="row-wrapper">
-          <div class="col header align-right menu_index W10">
-            <label for="menu_index">INDEX</label>
-          </div>
-          <div class="col menu_index">
-            <input type="text" id="menu_index" name="menu_index" placeholder="menu_index">
-          </div>
-          <div class="col blank"></div>
-        </div>
-      </li>
-      <li class="row">
-        <div class="row-wrapper">
-          <div class="col header align-right sort_order W10">
-            <label for="sort_order">정렬순서</label>
-          </div>
-          <div class="col sort_order">
-            <input type="text" id="sort_order" name="sort_order" placeholder="sort_order">
-          </div>
-          <div class="col blank"></div>
-        </div>
-      </li>
-      <li class="row">
-        <div class="row-wrapper">
-          <div class="col header align-right langauge W10">
-            <label for="langauge">언어</label>
-          </div>
-          <div class="col langauge">
-            <select name="langauge">
-              <option value="ko_KR" selected>한국어</option>
-              <option value="en_US">영어</option>
-            </select>
-          </div>
-          <div class="col blank"></div>
-        </div>
-      </li>
-      <li class="row">
-        <div class="row-wrapper">
-          <div class="col buttons W20 align-right">
-            <button class="btn_form_clear" form-name="menu_form">clear</button>
-            <button class="btn_form_save" form-name="menu_form">save</button>
-          </div>
-          <div class="col blank"></div>
-        </div>
-      </li>
-    </ul>
-  </form>
-</div>
-<!-- Menu Manage Form -->
-            </div>
-          </div>
+    <!-- Navbar goes here -->
+    <div id="header" class="row">
+      <div class="col s4">
+        <div class="wrapper">
+          <a href="/" id="btn_home">
+            <p>Dochi's Collection</p>
+          </a>
         </div>
       </div>
-    </section>
-    <footer id="footer">
-      <div class="wrapper p10">
-        footer
+    </div>
+    <!-- Page Layout here -->
+    <div id="section" class="row">
+      <div class="col s12 m4 l3">
+        <div id="menus" class="scroll">
+          <!-- Menu Navigator here -->
+        </div>
       </div>
-    </footer>
-  </div>
-  <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+      <div class="col s12 m8 l9">
+        <div id="viewer">
+          <a>content</a>
+        </div>
+      </div>
+    </div>
+  </div>  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  <script src="{{ url_for('static', filename='js/common/index.js') }}"></script>
   <script src="{{ url_for('static', filename='js/common/menu.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/manage/menus/menu_form.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/index.js') }}"></script>
 </body>
 </html>

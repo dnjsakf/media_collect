@@ -1,0 +1,8 @@
+@keyframes select_navi {
+  from { padding-left: 10px; }
+  to { padding-left: 17px; }
+}
+@keyframes slide_down {
+  from { margin-top: -10%; opacity: 0; }
+  to {  margin-top: 0; opacity: 100% }
+}
