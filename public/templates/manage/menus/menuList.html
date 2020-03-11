@@ -12,7 +12,7 @@
           <tr>
             <th class="content-sel"><input type="checkbox" id="select_all" name="select_all"></th>
             {% for header in menu_headers %}
-            <th class="{{ header }} centered">{{ header }}</th>
+            <th class="{{ header.name }} centered">{{ header.name }}</th>
             {% endfor %}
           </tr>
         </thead>
@@ -21,7 +21,11 @@
           <tr>
             <td class="content-sel"><input type="checkbox" name="select_one" value="{{ menu.full_menu }}"></td>
             {% for header in menu_headers %}
-            <td class="content-col {{ header }}">{{ menu[header] }}</td>
+            {% if header.key == 1 %}
+            <td class="content-col {{ header.name }}" key="{{ menu['full_menu'] }}">{{ menu[header.name] }}</td>
+            {% else %}
+            <td class="content-col {{ header.name }}">{{ menu[header.name] }}</td>
+            {% endif %}
             {% endfor %}
           </tr>
           {% endfor %}

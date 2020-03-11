@@ -1,14 +1,51 @@
-const Common = function(){}
+const Common = function(){
+  this.baseurl = "http://localhost:3000/"
+}
 
 Common.prototype = (function(){
+  function _initData(self, callback){
+    const js = self.getConfig('js');
+    const load = _loadJavaScript(self, js);
+
+    load.then(function(result){
+      const url = self.getConfig("url");
+      if( url ){
+        const config = {
+          method: "GET",
+          url: url,
+          baseurl: self.baseurl,
+          data: self.getConfig("params") || null
+        }
+        axios(config).then(function(response){
+          callback({
+            success: response.data.success,
+            data: response.data.success ? response.data.payload : null,
+            error: null
+          });
+        }).catch(function(error){
+          callback({
+            success: false,
+            data: null,
+            error: error
+          });
+        })
+      } else {
+        callback({
+          success: true,
+          data: null,
+          error: null
+        });
+      }
+    });
+  }
+
   function _initLoad(self, callback){
     const url = self.getConfig("url");
     const js = self.getConfig("js");
     
     _loadTemplates(self, url, function(success){
       if( success ){
-        _loadJavaScript(self, js);
-        callback() 
+        _loadJavaScript(self, js).then(callback);
       }
     });
   }
@@ -31,48 +68,78 @@ Common.prototype = (function(){
   }
   
   function _loadJavaScript(self, urls){
-    if( urls && Array.isArray( urls ) ){
-      urls.forEach(function(_url){
-        const url = "/public/"+_url+".js";
-        const script = document.querySelector('script[src="'+url+'"]');
-        if( !script ){
-          const body = document.querySelector("body");
-          const js = document.createElement("script");
-          axios({
-            method: "GET"
-            , url: url
-            , baseurl: "http://localhost:3000/"
-            , headers: {
-              "Content-Type": "text/html"
-            }
-          }).then(function(result){
-            js.src = url;
-            js.text =result.data;
-            body.appendChild(js);
-          }).catch(function(error){
-            console.log(error);
-          });
-        }
-      });
-    }
-  }
+    return new Promise(function(resolve, reject){
+      if( urls && Array.isArray( urls ) ){
+        const request_import = urls.map(function(_url){
+          const url = "/public/"+_url+".js";
+          const script = document.querySelector('script[src="'+url+'"]');
+          if( !script ){
+            return axios({
+              method: "GET"
+              , url: url
+              , baseurl: "http://localhost:3000/"
+              , headers: {
+                "Content-Type": "text/html"
+              }
+            });
+          }
+        });
   
-  function _openModal(self, options){
-
+        Promise.all(request_import).then(function(imports){
+          Promise.all(imports.map(function(result){
+            return new Promise(function(_resolve, _reject){
+              const head = document.querySelector("head");
+              const script = document.createElement("script");
+              script.src = result.config.url;
+              script.text = result.data;
+              script.onload = function(){
+                _resolve(true);
+              }
+              head.appendChild(script);
+            });
+          })).then(function(result){
+            resolve(result);
+          }).catch(function(error){
+            reject(error);
+          });
+        }).catch(function(error){
+          reject(error);
+        });
+      } else {
+        resolve();
+      }
+    });
   }
   
   return {
+    initData: function(callback){
+      return _initData(this, callback);
+    }, 
     initLoad: function(callback){
-      _initLoad(this, callback);
+      return _initLoad(this, callback);
     },
     loadTemplates: function(url){
-      _loadTemplates(this, url);
+      return _loadTemplates(this, url);
     },
-    loadJavaScript: function(url){
-      _loadJavaScript(this, url);
+    loadJavaScript: function(urls){
+      return _loadJavaScript(this, urls);
     },
     openModal: function(options){
-      _openModal(self, options);
+      return _openModal(self, options);
+    },
+    lazyLoaded: function(query, callback){
+      let el = document.querySelector(query);
+      if( el ){
+        callback(el);
+      } else {
+        let interval = setInterval(function(){
+          el = document.querySelector(query);
+          if(el){
+            clearInterval(interval);
+            callback(el);
+          }
+        }, 100);
+      }
     }
   }
 })();
@@ -86,10 +153,27 @@ Common.extends = function(obj){
 }
 
 Common.modal = (function(){
-  modals = [];
+  DEFAULT_CONFIG = {
+    "onOpenEnd": function(event){
+      M.updateTextFields();
+    },
+    "onCloseEnd": function(event){
+      this.destroy();
+      this.el.remove();
+    },
+    "startingTop": "5%",
+    "endingTop": "5%"
+  }
+
+  function _open(html, options){
+    const modal = _makeModal(html, options);
+    if( modal ){
+      modal.open();
+    }
+  }
   
-  function _open(options){
-      axios({
+  function _openTmeplate(options){
+    axios({
       method: "GET"
       , url: options.url
       , baseurl: "http://localhost:3000/"
@@ -99,7 +183,6 @@ Common.modal = (function(){
     }).then(function(result){
       const modal = _makeModal(result.data.html, options);
       if( modal ){
-        modals.push(modal);
         modal.open();
       }
     }).catch(function(error){
@@ -147,7 +230,13 @@ Common.modal = (function(){
     body.appendChild(modal);
     
     if( !options.config ){
-      options.config = {}
+      options.config = DEFAULT_CONFIG
+    }
+
+    if( options.data ){
+      options.config["onOpenStart"] = function(event){
+        console.log( options.data );
+      }
     }
     
     return M.Modal.init(modal, options.config);
@@ -172,80 +261,112 @@ Common.modal = (function(){
   }
   
   return {
-    open: function(options){
-      _open(options);
+    open: function(html, options){
+      _open(html, options);
     },
-    modals: this.modals
+    openTemplate: function(options){
+      _openTmeplate(options);
+    }
   }
-})([]);
+})();
 
 
-function getFormValues(form){
-  const inputs = form.querySelectorAll("input, select");
-  return Array.from(inputs).map(function(input){
-    return {
-      name: input.name 
-      , value: input.value
-      , required: input.getAttribute("required") != null
-      , el: input
-    }
-  });
-}
+Common.form = (function(){
+  function _getValues(self, form){
+    return Array.from(form.querySelectorAll("input, select"))
+      .filter(input=>!input.classList.contains("unused"))
+      .map(input=>({
+        name: input.name 
+        , value: input.value
+        , required: input.classList.contains("validate") != null
+        , el: input
+      }));
+  }
 
-function validateFormValues(form){
-  let invalid = null;
-
-  let values = getFormValues(form).map(function(data){
-    data.el.classList.remove("valid", "invalid");
-    if( data.required && !data.value ){
-      data.el.classList.add("invalid");
-      if( invalid == null ){
-        invalid = data.el;
+  function _clear(self, form){
+    const inputs = form.querySelectorAll("input, select");
+    Array.from(inputs).forEach(function(input, idx){
+      input.classList.remove("valid", "invalid");
+      if( input.type == "text" ){
+        input.value = "";
+      } else if ( input.type == "select-one" ){
+        const first_option = input.querySelectorAll("option");
+        if( first_option && first_option.length > 0 ){
+          Array.from(first_option).forEach(function(option, idx){
+            option.selected = (idx === 0);
+          })
+        }
       }
-    } else {
-      data.el.classList.add("valid");
-    }
-    return data;
-  })
-
-  if( invalid == null ){
-    values = values.reduce(function(prev, crnt, idx){
-      if( idx === 1 ){
-        let _temp = {}
-        _temp[prev.name] = prev.value;
-        prev = _temp;
+      if( idx === 0 ){
+        input.focus();
       }
-      prev[crnt.name] = crnt.value;
-      return prev;
     });
-  } else {
-    invalid.focus();
+  }
+
+  function _getValidValues(self, form){
+    let invalid = null;
+    let values = _getValues(self, form).map(function(data){
+      data.el.classList.remove("valid", "invalid");
+      if( data.required && !data.value ){
+        data.el.classList.add("invalid");
+        if( invalid == null ){
+          invalid = data.el;
+        }
+      } else {
+        data.el.classList.add("valid");
+      }
+      return data;
+    })
+  
+    if( invalid == null ){
+      values = values.reduce(function(prev, crnt, idx){
+        if( idx === 1 ){
+          let _temp = {}
+          _temp[prev.name] = prev.value;
+          prev = _temp;
+        }
+        prev[crnt.name] = crnt.value;
+        return prev;
+      });
+    } else {
+      invalid.focus();
+    }
+  
+    return {
+      valid: invalid == null
+      , data: invalid == null ? values : null
+    }
+  }
+  function _save(self, config, callback){
+    axios({
+      method: "POST"
+      , url: config.url
+      , data: config.data
+      , baseurl: "http://localhost:3000/"
+      , headers: {
+        "Content-Type": "application/json"
+      }
+    }).then(function(result){
+      const success = result.data.success;
+      callback(success, null);
+    }).catch(function(error){
+      console.error( error );
+      callback(false, error);
+    });
   }
 
   return {
-    valid: invalid == null
-    , values: invalid == null ? values : null
+    getValues: function(form){
+      return _getValues(this, form);
+    },
+    getValidValues: function(form){
+      return _getValidValues(this, form);
+    },
+    clear: function(form){
+      return _clear(this, form);
+    },
+    save: function(config, callback){
+      _save(this, config, callback);
+    }
   }
-}
-
-function clearForm(form){
-  const inputs = form.querySelectorAll("input, select");
-  Array.from(inputs).forEach(function(input, idx){
-    input.classList.remove("valid", "invalid");
-    if( input.type == "text" ){
-      input.value = "";
-    } else if ( input.type == "select-one" ){
-      const first_option = input.querySelectorAll("option");
-      if( first_option && first_option.length > 0 ){
-        Array.from(first_option).forEach(function(option, idx){
-          option.selected = (idx === 0);
-        })
-      }
-    }
-    if( idx === 0 ){
-      input.focus();
-    }
-  });
-}
-
-
+})()

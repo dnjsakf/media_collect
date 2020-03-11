@@ -1,10 +1,15 @@
 from routes import app
 from flask import render_template, jsonify
-from utils.pipelines.common.menus import selectMenuList
+from utils.pipelines.common import menus
 
 @app.route("/menus", methods=["GET"])
 def getMenuList():
 
-  menu_list = selectMenuList()
+  menu_list = menus.selectMenuList()
 
-  return jsonify({"html": render_template("templates/common/menus.html", menu_list=menu_list)})
+  return jsonify({
+    "success": True,
+    "payload": {
+      "list": menu_list
+    }
+  })

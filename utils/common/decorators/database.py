@@ -16,7 +16,6 @@ class MongoDbDecorator(object):
       def wrapper(*args, **kwargs):
         conn = Connector.connect("mongo")
 
-        print( conn )
         return func(conn[database][document], *args, **kwargs)
       return wrapper
     return decorator
@@ -38,20 +37,32 @@ class MongoDbDecorator(object):
     return wrapper
 
   @classmethod
-  def select(cls, func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-      items = func(*args, **kwargs)
+  def select(cls, database=None, document=None):
+    def decorator(func):
+      @wraps(func)
+      def wrapper(*args, **kwargs):
+        conn = Connector.connect("mongo")
 
-      if( isinstance(items, CommandCursor) or isinstance(items, Cursor)):
-        items = list(items)
-      else:
-        items = [items]
+        pipeline = func(*args, **kwargs)
 
-      logger.info("count: {}".format(len(items)))
+        items = conn[database][document].aggregate(pipeline)
 
-      return items
-    return wrapper
+        if( isinstance(items, CommandCursor) or isinstance(items, Cursor)):
+          items = list(items)
+        else:
+          items = [items]
+
+        logger.info("count: {}".format(len(items)))
+
+        if kwargs.get("header") == True:
+          headers = [ key for pipe in pipeline if "$project" in pipe for key in pipe["$project"] ]
+          logger.info("headers: {}".format(headers))
+
+          return ( items, headers )
+        else:
+          return items
+      return wrapper
+    return decorator
 
   @classmethod
   def insert(cls, func):

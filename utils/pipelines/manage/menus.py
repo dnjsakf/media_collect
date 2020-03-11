@@ -4,10 +4,14 @@ from pymongo import UpdateOne
 from utils.common.decorators.database import MongoDbDecorator as mongo
 from utils.pipelines import common
 
-@mongo.connect("manage", "mn_menu_mst")
-@mongo.select
-def selectManageMenuList(conn):
-  return conn.aggregate([
+@mongo.select("manage", "mn_menu_mst")
+def selectManageMenuList(*args, **kwargs):
+  return [
+    {
+      "$addFields": {
+        "_id": { "$toString": "$_id" }
+      }
+    },
     {
       "$project": {
         "_id": 1
@@ -21,7 +25,7 @@ def selectManageMenuList(conn):
     },
     { "$sort": { "sort_orer": 1 } },
     { "$limit": 10 }
-  ])
+  ]
 
 @mongo.connect("manage", "mn_menu_mst")
 @mongo.upsert

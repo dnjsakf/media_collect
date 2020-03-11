@@ -10,18 +10,27 @@ DOT_ENV = os.path.join(os.path.abspath("config"), ".env")
 
 CONNECT_URL_FMT="{protocol}://{host}:{port}/{database}"
 CONNECT_AUTH_URL_FMT="{protocol}://{username}:{password}@{host}:{port}/{database}"
+CONNECT_AUTH_URL_FMT_OPT="{protocol}://{username}:{password}@{host}/{database}?{options}"
 
 LOGGING_LEVEL = "DEBUG"
 LOGGING_PATH = os.path.abspath("logs")
 LOGGING_FILE = True
 
 MONGO_DATABASE = db.MONGO_DATABASE
-MONGO_CONNECT = CONNECT_AUTH_URL_FMT.format(
+# MONGO_CONNECT = CONNECT_AUTH_URL_FMT.format(
+#   protocol=db.MONGO_PROTOCOL    # mongodb
+#   , username=db.MONGO_USERNAME
+#   , password=db.MONGO_PASSWORD
+#   , host=db.MONGO_HOST
+#   , port=db.MONGO_PORT
+#   , database=db.MONGO_DATABASE
+# )
+MONGO_CONNECT = CONNECT_AUTH_URL_FMT_OPT.format(
   protocol=db.MONGO_PROTOCOL    # mongodb
   , username=db.MONGO_USERNAME
   , password=db.MONGO_PASSWORD
   , host=db.MONGO_HOST
-  , port=db.MONGO_PORT
+  , options=db.MONGO_OPTIONS
   , database=db.MONGO_DATABASE
 )
 
