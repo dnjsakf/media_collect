@@ -66,8 +66,17 @@ Common.prototype = (function(){
       callabck(false);
     });
   }
-  
+
   function _loadJavaScript(self, urls){
+    return Promise.all(
+      urls.map(function( _url ){
+        const url = "/public/"+_url+".js";
+        return import(url);
+      })
+    );
+  }
+  
+  function _loadJavaScript2(self, urls){
     return new Promise(function(resolve, reject){
       if( urls && Array.isArray( urls ) ){
         const request_import = urls.map(function(_url){
