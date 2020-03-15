@@ -4,12 +4,19 @@ from pymongo import UpdateOne
 from utils.common.decorators.database import MongoDbDecorator as mongo
 from utils.pipelines import common
 
+@mongo.count("manage", "mn_menu_mst")
+def getManageMenuListCount(*args, **kwargs):
+  return kwargs["cond"] if "cond" in kwargs else None
+
 @mongo.select("manage", "mn_menu_mst")
 def selectManageMenuList(*args, **kwargs):
+  skip = int(kwargs["skip"] if "skip" in kwargs else 1)
+  rowsCount = int(kwargs["rowsCount"] if "rowsCount" in kwargs else 10)
+
   return [
     {
       "$addFields": {
-        "_id": { "$toString": "$_id" }
+        "_id": { "$toString": "$_id" },
       }
     },
     {
@@ -23,8 +30,9 @@ def selectManageMenuList(*args, **kwargs):
         , "sort_order": 1
       }
     },
-    { "$sort": { "sort_orer": 1 } },
-    { "$limit": 10 }
+    { "$sort": { "sort_order": -1 } },
+    { "$skip": skip-1 },
+    { "$limit": rowsCount }
   ]
 
 @mongo.connect("manage", "mn_menu_mst")

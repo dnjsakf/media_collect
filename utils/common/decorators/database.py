@@ -35,6 +35,37 @@ class MongoDbDecorator(object):
 
       return item
     return wrapper
+    
+  @classmethod
+  def count(cls, database=None, document=None):
+    def decorator(func):
+      @wraps(func)
+      def wrapper(*args, **kwargs):
+        conn = Connector.connect("mongo")
+
+        cond = func(*args, **kwargs)
+        if cond is None:
+          cond = {}
+
+        items = conn[database][document].aggregate([
+          {
+            "$match": cond
+          },
+          {
+            "$count": "count"
+          }
+        ])
+
+        count = 0
+        try:
+          item = items.next()
+          count = item["count"]
+        except StopIteration as e:
+          pass
+
+        return count
+      return wrapper
+    return decorator
 
   @classmethod
   def select(cls, database=None, document=None):
@@ -54,11 +85,11 @@ class MongoDbDecorator(object):
 
         logger.info("count: {}".format(len(items)))
 
-        if kwargs.get("header") == True:
-          headers = [ key for pipe in pipeline if "$project" in pipe for key in pipe["$project"] ]
-          logger.info("headers: {}".format(headers))
+        if kwargs.get("columns") == True:
+          columns = [ key for pipe in pipeline if "$project" in pipe for key in pipe["$project"] ]
+          logger.info("columns: {}".format(columns))
 
-          return ( items, headers )
+          return ( items, columns )
         else:
           return items
       return wrapper

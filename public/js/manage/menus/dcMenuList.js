@@ -1,39 +1,44 @@
-Element.prototype.dcMenuList = function(setting){
-  let config = {
-    url: "",
-    js: [
-      "js/manage/menus/dcMenuForm",
-      "js/common/dcDataTable"
-    ],
-    parent: null,
-    checkbox: true
+import Common, { bindElement } from '/public/js/common/dcCommon.js'
+
+const initConfig = {
+  url: "",
+  js: [
+    "js/manage/menus/dcMenuForm",
+    "js/common/dcDataTable",
+    "js/common/dcPagination"
+  ],
+  parent: null,
+  checkbox: true,
+  params: {
+    page: 1,
+    rowsCount: 10
   }
-  
-  if( setting ){
-    Object.assign(config, setting);
-  }
-  
-  const p = new DochiMenuList(config, this);
-  Common.extends(p);
-  p.init();
-  
-  return p;
 }
 
 const DochiMenuList = function(config, el){
-  let datas = {}
+  let datas = config.data || {}
   let insts = {}
+  let doms = {}
   
   this.el = el;
   this.setConfig = (k,v)=>{ config[k] = v }
-  this.getConfig = (k)=>config[k]
+  this.getConfig = (k)=>config[k];
   this.setData = (k,v)=>{ datas[k] = v }
   this.setDatas = (v)=>{ datas=v }
-  this.getData = (k)=>datas[k]
-  this.getDatas = ()=>datas
+  this.getData = (k)=>datas[k];
+  this.getDatas = ()=>datas;
   this.setInst = (k,v)=>{ insts[k] = v }
-  this.getInst = (k)=>insts[k]
-  this.getInsts = ()=>insts
+  this.getInst = (k)=>insts[k];
+  this.getInsts = ()=>insts;
+  this.setDom = (k,v)=>{ doms[k] = v }
+  this.getDom = (k)=>doms[k];
+
+  this.setPage = (v)=>{ datas.page.current = v; }
+  this.getPage = ()=>datas.page.current;
+  this.setMaxPage = (v)=>{ datas.page.max = v; }
+  this.getMazPage = ()=>datas.page.max;
+  this.setRowsCount = (v)=>{ datas.page.rowsCount = v; }
+  this.getRowsCount = ()=> datas.page.rowsCount;
 }
 
 DochiMenuList.prototype = (function(){
@@ -52,6 +57,15 @@ DochiMenuList.prototype = (function(){
   }
 
   function _initRender(self){
+    const columns = [
+      { name: "menu_grp_id", className: "menu_grp_id", label: "메뉴그룹ID" },
+      { name: "menu_id", className: "menu_id", label: "메뉴그룹ID", onclick: function(event){console.log(eevnt);} },
+      { name: "full_menu", className: "full_menu", label: "메뉴ID" },
+      { name: "menu_name", className: "menu_name", label: "메뉴명" },
+      { name: "menu_index", className: "menu_index", label: "인덱스" },
+      { name: "sort_order", className: "sort_order", label: "정ㄹ렬순서" },
+    ];
+
     const html = `
     <div class="viewer-wrapper">
       <div id="content_search">
@@ -60,9 +74,7 @@ DochiMenuList.prototype = (function(){
         </div>
       </div>
       <div id="content">
-        <div class="content-wrapper">
-          <table id="content_table" class="highlight striped">
-          </table>
+        <div id="content_list" class="content-wrapper">
         </div>
       </div>
       <div id="content_control">
@@ -72,16 +84,7 @@ DochiMenuList.prototype = (function(){
             </div>
           </div>
           <div class="col s6">
-            <div class="pagination-wrapper">
-              <ul id="pagination" class="pagination">
-                <li class="disabled"><a href="#!"><i class="material-icons">chevron_left</i></a></li>
-                <li class="active"><a href="#!">1</a></li>
-                <li class="waves-effect"><a href="#!">2</a></li>
-                <li class="waves-effect"><a href="#!">3</a></li>
-                <li class="waves-effect"><a href="#!">4</a></li>
-                <li class="waves-effect"><a href="#!">5</a></li>
-                <li class="waves-effect"><a href="#!"><i class="material-icons">chevron_right</i></a></li>
-              </ul>
+            <div id="pagination" class="pagination-wrapper">
             </div>
           </div>
           <div class="col s3">
@@ -95,17 +98,24 @@ DochiMenuList.prototype = (function(){
     </div>
     `;
     self.el.innerHTML = html;
-
-    const table = document.querySelector("#content_table");
-    const pagination = document.querySelector("#pagination");
-
-    self.setInst("table", table);
-    self.setInst("pagination", pagination);
     
-    table.dcDataTable({
+    const pagination = document.querySelector("#pagination");
+    const dataTable = document.querySelector("#content_list").dcDataTable({
+      parent: self,
       url: "/api/manage/menus/menuList",
-      checkbox: true
+      params: {
+        rowsCount: 2
+      },
+      data: {
+        list: self.getData("list"),
+      },
+      checkbox: true,
+      columns: columns,
+      pagination: pagination,
     });
+    
+    self.setDom("pagination", pagination);
+    self.setInst("dataTable", dataTable);
   }
   
   function _initEvent(self){
@@ -130,6 +140,7 @@ DochiMenuList.prototype = (function(){
       options.title = "메뉴 등록";
     } else if ( saveType === "update" ){
       options.title = "메뉴 수정";
+      /*
       options.data = {
         url: "/manage/menus/save"
         , data: {
@@ -137,6 +148,7 @@ DochiMenuList.prototype = (function(){
           , "menu_id": data.split("/")[1]
         }
       }
+      */
     }
 
     return function(event){
@@ -183,10 +195,12 @@ DochiMenuList.prototype = (function(){
       });
     }
   }
-  
+
   return {
     init: function(){
       _init(this);
     }
   }
 })();
+
+export default bindElement("dcMenuList", DochiMenuList, initConfig);

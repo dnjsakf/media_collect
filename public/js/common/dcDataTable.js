@@ -1,37 +1,31 @@
-Element.prototype.dcDataTable = function(setting){
-  let config = {
-    url: ""
-    , js: [
-    ],
-    parent: null,
-    checkbox: true
-  }
-  
-  if( setting ){
-    Object.assign(config, setting);
-  }
-  
-  const p = new DochiDataTable(config, this);
-  Common.extends(p);
-  p.init();
-  
-  return p;
+import { bindElement } from '/public/js/common/dcCommon.js'
+
+const initConfig = {
+  url: "",
+  js: [
+    "js/common/dcPagination"
+  ],
+  parent: null,
+  checkbox: true,
 }
 
 const DochiDataTable = function(config, el){
-  let datas = {}
+  let datas = config.data || {}
   let insts = {}
+  let doms = {}
   
   this.el = el;
   this.setConfig = (k,v)=>{ config[k] = v }
-  this.getConfig = (k)=>config[k]
+  this.getConfig = (k)=>config[k];
   this.setData = (k,v)=>{ datas[k] = v }
   this.setDatas = (v)=>{ datas=v }
-  this.getData = (k)=>datas[k]
-  this.getDatas = ()=>datas
+  this.getData = (k)=>datas[k];
+  this.getDatas = ()=>datas;
   this.setInst = (k,v)=>{ insts[k] = v }
-  this.getInst = (k)=>insts[k]
-  this.getInsts = ()=>insts
+  this.getInst = (k)=>insts[k];
+  this.getInsts = ()=>insts;
+  this.setDom = (k,v)=>{ doms[k] = v }
+  this.getDom = (k)=>doms[k];
 }
 
 DochiDataTable.prototype = (function(){
@@ -42,29 +36,55 @@ DochiDataTable.prototype = (function(){
           self.setDatas(res.data);
         }
         _initRender(self);
+        _renderTable(self, res.data.list);
       } else {
-        console.error( res.error );
+        console.error(res.error);
       }
     });
+
   }
 
   function _initRender(self){
-    const headers = self.getData("headers");
-    const data = self.getData("list");
+    const html = `
+    <table id="content_table" class="highlight striped">
+    </table>
+    `;
+    self.el.innerHTML = html;
 
-    const thead = _rednerTableHead(self, headers);
-    const tbody = _renderTableBody(self, headers, data);
+    const table = document.querySelector("#content_table");
+    self.setDom("table", table);
 
-    self.el.appendChild(thead);
-    self.el.appendChild(tbody);
+    const pagination = self.getConfig("pagination");
+    if( pagination ){
+      const current = self.getData("page").current;
+      const pager = pagination.dcPagination({
+        parent: self,
+        url: self.getConfig("url"),
+        data: self.getData("page")
+      });
+      pager.changePage(current);
+      self.setInst("pager", pager);
+    }
+  }
+  
+  function _renderTable(self, data){
+    const table = self.getDom("table");
+    const thead = _rednerTableHead(self);
+    const tbody = _renderTableBody(self, data);
+
+    Array.from(table.children).forEach(el=>el.remove());
+
+    table.appendChild(thead);
+    table.appendChild(tbody);
   }
 
-  function _rednerTableHead(self, headers){
+  function _rednerTableHead(self){
+    const columns = self.getConfig("columns");
     const thead = document.createElement("thead");
     const tr = document.createElement("tr");
 
     // 초기화
-    Array.from(thead.children).forEach(el=>el.remove);
+    Array.from(thead.children).forEach(el=>el.remove());
 
     // 전체선택 Checkbox
     const checkbox = self.getConfig("checkbox");
@@ -78,11 +98,20 @@ DochiDataTable.prototype = (function(){
       tr.appendChild(th_checkbox);
     }
 
-    // Header 설정
-    headers.forEach(function(header){
+    // column 설정
+    columns.forEach(function(column){
       const th = document.createElement("th");
-      th.className = `${header}`;
-      th.appendChild(document.createTextNode(header));
+
+      if( column.className ){
+        th.className = `${column.className}`;  
+      }
+      if( column.name ){
+        th.classList.add( column.name );
+      }
+      if( column.label ){
+        th.appendChild(document.createTextNode(column.label));
+      }
+      
       tr.appendChild(th);
     });
 
@@ -102,21 +131,22 @@ DochiDataTable.prototype = (function(){
     return checkbox;
   }
 
-  function _renderTableBody(self, headers, datas){
+  function _renderTableBody(self, datas){
     const tbody = document.createElement("tbody");
 
     // 초기화
-    Array.from(tbody.children).forEach(el=>el.remove);
+    Array.from(tbody.children).forEach(el=>el.remove());
 
     datas.forEach(function(data){
-      const tr = _renderRow(self, headers, data);
+      const tr = _renderRow(self, data);
       tbody.appendChild(tr);
     });
 
     return tbody;
   }
 
-  function _renderRow(self, headers, data){
+  function _renderRow(self, data){
+    const columns = self.getConfig("columns");
     const tr = document.createElement("tr");
 
     // 선택 Checkbox
@@ -131,10 +161,15 @@ DochiDataTable.prototype = (function(){
       tr.appendChild(td_checkbox);
     }
 
-    headers.forEach(function(header){
+    columns.forEach(function(column){
       const td = document.createElement("td");
-      td.className = `content-col ${header}`;
-      td.appendChild(document.createTextNode(data[header]));
+
+      if( column.className ){
+        td.className = `content-col ${column.className}`;  
+      }
+      td.classList.add( column.name );
+
+      td.appendChild(document.createTextNode(data[column.name]));
       tr.appendChild(td); 
     });
 
@@ -148,6 +183,11 @@ DochiDataTable.prototype = (function(){
   return {
     init: function(){
       _init(this);
+    }, reload: function(data){
+      this.setData("data", data);
+      _renderTable(this, data);
     }
   }
 })();
+
+export default bindElement("dcDataTable", DochiDataTable, initConfig);

@@ -1,36 +1,28 @@
-Element.prototype.dcMenuForm = function(setting){
-  let config = {
-    url: ""
-    , js: [
-    ],
-    parent: null
-  }
-  
-  if( setting ){
-    Object.assign(config, setting);
-  }
-  
-  const p = new DochiMenuForm(config, this);
-  Common.extends(p);
-  p.init();
-  
-  return p;
+import Common, { bindElement } from '/public/js/common/dcCommon.js'
+
+const initConfig = {
+  url: "",
+  js: [],
+  parent: null
 }
 
 const DochiMenuForm = function(config, el){
   let datas = {}
   let insts = {}
+  let doms = {}
   
   this.el = el;
   this.setConfig = (k,v)=>{ config[k] = v }
-  this.getConfig = (k)=>config[k]
+  this.getConfig = (k)=>config[k];
   this.setData = (k,v)=>{ datas[k] = v }
   this.setDatas = (v)=>{ datas=v }
   this.getData = (k)=>datas[k]
-  this.getDatas = ()=>datas
+  this.getDatas = ()=>datas;
   this.setInst = (k,v)=>{ insts[k] = v }
   this.getInst = (k)=>insts[k]
-  this.getInsts = ()=>insts
+  this.getInsts = ()=>insts;
+  this.setDom = (k,v)=>{ doms[k] = v }
+  this.getDom = (k)=>doms[k]
 }
 
 DochiMenuForm.prototype = (function(){
@@ -100,3 +92,5 @@ DochiMenuForm.prototype = (function(){
     }
   }
 })();
+
+export default bindElement("dcMenuForm", DochiMenuForm, initConfig);

@@ -1,37 +1,30 @@
-Element.prototype.dcMenu = function(setting){
-  let config = {
-    url: "/menus"
-    , js: [
-      "js/manage/menus/dcMenuList"
-    ],
-    parent: null
-  }
-  
-  if( setting ){
-    Object.assign(config, setting);
-  }
-  
-  const p = new DochiMenu(config, this);
-  Common.extends(p);
-  p.init();
-  
-  return p;
+import { bindElement } from '/public/js/common/dcCommon.js'
+
+const initConfig = {
+  url: "/menus",
+  js: [
+    "js/manage/menus/dcMenuList"
+  ],
+  parent: null
 }
 
 const DochiMenu = function(config, el){
-  let datas = {}
+  let datas = config.data || {}
   let insts = {}
+  let doms = {}
   
   this.el = el;
   this.setConfig = (k,v)=>{ config[k] = v }
-  this.getConfig = (k)=>config[k]
+  this.getConfig = (k)=>config[k];
   this.setData = (k,v)=>{ datas[k] = v }
   this.setDatas = (v)=>{ datas=v }
-  this.getData = (k)=>datas[k]
-  this.getDatas = ()=>datas
+  this.getData = (k)=>datas[k];
+  this.getDatas = ()=>datas;
   this.setInst = (k,v)=>{ insts[k] = v }
-  this.getInst = (k)=>insts[k]
-  this.getInsts = ()=>insts
+  this.getInst = (k)=>insts[k];
+  this.getInsts = ()=>insts;
+  this.setDom = (k,v)=>{ doms[k] = v }
+  this.getDom = (k)=>doms[k];
 }
 
 DochiMenu.prototype = (function(){
@@ -171,3 +164,5 @@ DochiMenu.prototype = (function(){
     }
   }
 })();
+
+export default bindElement("dcMenu", DochiMenu, initConfig);

@@ -1,7 +1,5 @@
-Common.prototype.loadJavaScript([
-  "js/common/dcMenu"
-]).then(function(){
-  const menus = document.getElementById("menus");
+import Common from '/public/js/common/dcCommon.js'
+import Menus from '/public/js/common/dcMenu.js'
 
-  menus.dcMenu();
-});
+const menus = document.getElementById("menus");
+menus.dcMenu();

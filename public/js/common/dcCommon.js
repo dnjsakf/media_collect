@@ -14,7 +14,8 @@ Common.prototype = (function(){
           method: "GET",
           url: url,
           baseurl: self.baseurl,
-          data: self.getConfig("params") || null
+          data: self.getConfig("data") || null,
+          params: self.getConfig("params") || null
         }
         axios(config).then(function(response){
           callback({
@@ -69,9 +70,10 @@ Common.prototype = (function(){
 
   function _loadJavaScript(self, urls){
     return Promise.all(
-      urls.map(function( _url ){
-        const url = "/public/"+_url+".js";
-        return import(url);
+      urls.map(function(_url){
+        return import("/public/"+_url+".js").then(function(module){
+          //console.log( module.default );
+        })
       })
     );
   }
@@ -153,16 +155,18 @@ Common.prototype = (function(){
   }
 })();
 
-Common.extends = function(obj){  
-  for(let key in Common.prototype ){
-    if( typeof Common.prototype[key] === 'function' ){
-      obj.__proto__[key] = Common.prototype[key];
+Common.extendsModule = function(source, target){
+  for(let key in source.prototype ){
+    if( typeof source.prototype[key] === 'function' ){
+      if( typeof target.__proto__[key] === 'undefined' ){
+        target.__proto__[key] = source.prototype[key];
+      }
     }
   }
 }
 
 Common.modal = (function(){
-  DEFAULT_CONFIG = {
+  const DEFAULT_CONFIG = {
     "onOpenEnd": function(event){
       M.updateTextFields();
     },
@@ -378,4 +382,32 @@ Common.form = (function(){
       _save(this, config, callback);
     }
   }
-})()
+})();
+
+export function bindElement(name, func, initConfig){
+  let config = {
+    url: "",
+    js: [],
+    parent: null
+  }
+  
+  if( initConfig ){
+    Object.assign(config, initConfig);
+  }
+
+  Element.prototype[name] = function(setting){
+    if( setting ){
+      Object.assign(config, setting);
+    }
+    
+    const p = new func(config, this);
+    Common.extendsModule(Common, p);
+    p.init();
+    
+    return p;
+  };
+
+  return func;
+}
+
+export default Common;

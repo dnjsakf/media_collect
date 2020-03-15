@@ -1,4 +1,4 @@
-BASE_URL = "http://localhost:4000"
+BASE_URL = "http://localhost:3000"
 DEBUG = True
 TESTING = True
 CORS = {
