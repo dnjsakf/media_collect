@@ -3,6 +3,21 @@ from flask import jsonify, render_template, request
 
 from utils.pipelines.manage import menus
 
+
+@app.route("/api/manage/menus", methods=["GET"])
+def getManageMenusMenuInfo():
+  menu_grp_id = request.args.get("menu_grp_id")
+  menu_id = request.args.get("menu_id")
+
+  info = menus.selectManageMenuInfo(menu_grp_id=menu_grp_id, menu_id=menu_id)
+
+  return jsonify({
+    "success": True, 
+    "payload": {
+      "data": info
+    }
+  })
+
 @app.route("/api/manage/menus/menuList/<int:page>", methods=["GET"])
 @app.route("/api/manage/menus/menuList", methods=["GET"])
 def getManageMenusMenuList(page=None):

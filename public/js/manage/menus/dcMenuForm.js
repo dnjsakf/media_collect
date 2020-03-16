@@ -42,7 +42,7 @@ DochiMenuForm.prototype = (function(){
         </div>
         <div class="row">
           <div class="input-field col s6">
-            <input id="menu_grp_id" name="menu_grp_id" type="text" class="validate">
+            <input id="menu_grp_id" name="menu_grp_id" type="text" class="">
             <label for="menu_grp_id">메뉴그룹ID</label>
           </div>
           <div class="input-field col s6">
@@ -62,8 +62,8 @@ DochiMenuForm.prototype = (function(){
         </div>
         <div class="row">
           <div class="input-field col s12">
-            <input id="index" name="index" type="text" class="validate">
-            <label for="index">인덱스</label>
+            <input id="menu_index" name="menu_index" type="text" class="validate">
+            <label for="menu_index">인덱스</label>
           </div>
         </div>
       </form>

@@ -21,20 +21,35 @@ class MongoDbDecorator(object):
     return decorator
 
   @classmethod
-  def select_one(cls, func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-      item = func(*args, **kwargs)
+  def select_one(cls, database=None, document=None):
+    def decorator(func):
+      @wraps(func)
+      def wrapper(*args, **kwargs):
+        conn = Connector.connect("mongo")
 
-      if( isinstance(item, CommandCursor) or isinstance(item, Cursor)):
-        item = list(item)
-      logger.info("count: {}".format( item ))
+        pipeline = func(*args, **kwargs)
 
-      item = item[0] if len(item) != 0 else None
-      logger.info("item: {}".format( item ))
+        items = conn[database][document].aggregate(pipeline)
 
-      return item
-    return wrapper
+        if( isinstance(items, CommandCursor) or isinstance(items, Cursor)):
+          items = list(items)
+        else:
+          items = [items]
+
+        logger.info("count: {}".format(len(items)))
+
+        if( len(items) > 0 ):
+          items = items[0]
+
+        if kwargs.get("columns") == True:
+          columns = [ key for pipe in pipeline if "$project" in pipe for key in pipe["$project"] ]
+          logger.info("columns: {}".format(columns))
+
+          return ( items, columns )
+        else:
+          return items
+      return wrapper
+    return decorator
     
   @classmethod
   def count(cls, database=None, document=None):

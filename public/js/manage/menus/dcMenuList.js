@@ -67,11 +67,11 @@ DochiMenuList.prototype = (function(){
   function _initRender(self){
     const columns = [
       { name: "menu_grp_id", className: "menu_grp_id", label: "메뉴그룹ID" },
-      { name: "menu_id", className: "menu_id", label: "메뉴그룹ID", onclick: function(event){console.log(eevnt);} },
-      { name: "full_menu", className: "full_menu", label: "메뉴ID" },
+      { name: "menu_id", className: "menu_id", label: "메뉴ID", onclick: _handleMenuModal("update") },
+      { name: "full_menu", className: "full_menu", label: "전체메뉴ID" },
       { name: "menu_name", className: "menu_name", label: "메뉴명" },
       { name: "menu_index", className: "menu_index", label: "인덱스" },
-      { name: "sort_order", className: "sort_order", label: "정ㄹ렬순서" },
+      { name: "sort_order", className: "sort_order", label: "정렬순서" },
     ];
 
     const html = `
@@ -130,18 +130,14 @@ DochiMenuList.prototype = (function(){
     if( btn_insert_menu ){
       btn_insert_menu.addEventListener("click", _handleMenuModal("insert"));
     }
-
-    const btn_update_menu = self.el.querySelectorAll(".content-col.menu_id");
-    Array.from(btn_update_menu).forEach(function(btn){
-      const data = btn.getAttribute("key");
-      btn.addEventListener("click", _handleMenuModal("update", data));
-    });
   }
 
-  function _handleMenuModal(saveType, data){
+  function _handleMenuModal(saveType){
     let options = {
       url: "/tmpl/manage/menus/menuForm"
     }
+
+    options.url = "/api/manage/menus"
 
     if( saveType === "insert" ){
       options.title = "메뉴 등록";
@@ -149,9 +145,15 @@ DochiMenuList.prototype = (function(){
       options.title = "메뉴 수정";
     }
 
-    return function(event){
-      event.preventDefault();
-      _openModal(options);
+    return function(menu_grp_id, menu_id){
+      return function(event){
+        event.preventDefault();
+        options.params = {
+          menu_grp_id: menu_grp_id,
+          menu_id: menu_id
+        }
+        _openModal(options);
+      }
     }
   }
   
@@ -169,7 +171,7 @@ DochiMenuList.prototype = (function(){
         }
       ]
     });
-    Common.modal.openTemplate(options);
+    Common.modal.open(options);
   }
 
   function _saveMenu(event){
@@ -179,7 +181,9 @@ DochiMenuList.prototype = (function(){
     const inst = M.Modal.getInstance(modal);
     const form = inst.el.querySelector("form");
     const values = Common.form.getValidValues(form);
-    
+
+    console.log( values );
+
     if( values.valid ){
       Common.form.save({
         url: "/manage/menus/save",

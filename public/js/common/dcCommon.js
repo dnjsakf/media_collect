@@ -178,8 +178,29 @@ Common.modal = (function(){
     "endingTop": "5%"
   }
 
-  function _open(html, options){
-    const modal = _makeModal(html, options);
+  function _open(options){
+    axios({
+      method: "GET"
+      , url: options.url
+      , baseurl: "http://localhost:3000/"
+      , params: options.params || {}
+      , headers: {
+        "Content-Type": "application/json"
+      }
+    }).then(function(result){
+      options.data = result.data.payload.data;
+
+      const modal = _makeModal(options);
+      if( modal ){
+        modal.open();
+      }
+    }).catch(function(error){
+      console.error( error );
+    });
+  }
+
+  function _openHTML(options, html){
+    const modal = _makeModal(options, html);
     if( modal ){
       modal.open();
     }
@@ -190,11 +211,12 @@ Common.modal = (function(){
       method: "GET"
       , url: options.url
       , baseurl: "http://localhost:3000/"
-      , headers: {
-        "Content-Type": "text/html"
-      }
+      , params: options.params || {}
+      // , headers: {
+      //   "Content-Type": "text/html"
+      // }
     }).then(function(result){
-      const modal = _makeModal(result.data.html, options);
+      const modal = _makeModal(options, result.data.html);
       if( modal ){
         modal.open();
       }
@@ -203,39 +225,15 @@ Common.modal = (function(){
     });
   }
   
-  function _makeModal(html, options){
+  function _makeModal(options, html){
     const body = document.querySelector("body");
-    
     const modal = document.createElement("div");
+    const modal_header = _renderModalHeader(options);
+    const modal_content = _rednerModalContent(options, html);
+    const modal_footer = _renderModalFooter(options);
+    
     modal.className = "modal modal-fixed-header modal-fixed-footer";
-    
-    /* Header */
-    const modal_header = document.createElement("div");
-    modal_header.className = "modal-header";
-    
-    const modal_header_text = document.createElement("a");
-    modal_header_text.className = "btn-flat";
-    modal_header_text.appendChild(document.createTextNode(options.title));
-    
-    modal_header.appendChild(modal_header_text);
-    /* Header */
-    
-    /* Content */
-    const modal_content = document.createElement("div");
-    modal_content.className = "modal-content";
-    modal_content.innerHTML = html;
-    /* Content */
-    
-    /* Footer */
-    const modal_footer = document.createElement("div");
-    modal_footer.className = "modal-footer";
-    
-    options.buttons.forEach(function(btn_option){
-      let button = _makeModalButton.call(null, modal, btn_option);
-      modal_footer.appendChild(button);
-    });
-    /* Footer */
-    
+
     modal.appendChild(modal_header);
     modal.appendChild(modal_content);
     modal.appendChild(modal_footer);
@@ -248,14 +246,60 @@ Common.modal = (function(){
 
     if( options.data ){
       options.config["onOpenStart"] = function(event){
-        console.log( options.data );
+        const inputs = modal_content.querySelectorAll("input, select");
+        Array.from(inputs).forEach(function(input){
+          const data = options.data[input.name];
+          if( data ){
+            input.value = data;
+          }
+        });
       }
     }
     
     return M.Modal.init(modal, options.config);
   }
 
-  function _makeModalButton(modal, option){
+  function _renderModalHeader(options){
+    const modal_header = document.createElement("div");
+    modal_header.className = "modal-header";
+    
+    const modal_header_text = document.createElement("a");
+    modal_header_text.className = "btn-flat";
+    modal_header_text.appendChild(document.createTextNode(options.title));
+    
+    modal_header.appendChild(modal_header_text);
+
+    return modal_header;
+  }
+
+  function _rednerModalContent(options, html){
+    const modal_content = document.createElement("div");
+    modal_content.className = "modal-content";
+    
+    if( html ){
+      modal_content.innerHTML = html;
+    } else {
+      modal_content.dcMenuForm();
+    }
+
+    return modal_content;
+  }
+
+  function _renderModalFooter(options){
+    const modal_footer = document.createElement("div");
+    modal_footer.className = "modal-footer";
+    
+    if( options.buttons ){
+      options.buttons.forEach(function(btn_option){
+        let button = _renderModalButton(btn_option);
+        modal_footer.appendChild(button);
+      });
+    }
+
+    return modal_footer;
+  }
+
+  function _renderModalButton(option){
     const button = document.createElement("a");
     
     button.className = "waves-effect waves-green btn-flat";
@@ -274,8 +318,8 @@ Common.modal = (function(){
   }
   
   return {
-    open: function(html, options){
-      _open(html, options);
+    open: function(options, html){
+      _open(options, html);
     },
     openTemplate: function(options){
       _openTmeplate(options);
@@ -291,7 +335,7 @@ Common.form = (function(){
       .map(input=>({
         name: input.name 
         , value: input.value
-        , required: input.classList.contains("validate") != null
+        , required: input.classList.contains("validate")
         , el: input
       }));
   }
@@ -321,6 +365,7 @@ Common.form = (function(){
     let values = _getValues(self, form).map(function(data){
       data.el.classList.remove("valid", "invalid");
       if( data.required && !data.value ){
+        console.log( data.el );
         data.el.classList.add("invalid");
         if( invalid == null ){
           invalid = data.el;
@@ -329,7 +374,9 @@ Common.form = (function(){
         data.el.classList.add("valid");
       }
       return data;
-    })
+    });
+
+    console.log( values );
   
     if( invalid == null ){
       values = values.reduce(function(prev, crnt, idx){

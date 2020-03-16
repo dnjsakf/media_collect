@@ -66,6 +66,9 @@ DochiPagination.prototype = (function(){
     self.setDom("pager", pager);
   }
 
+  /**
+   * Page Numbers 렌더링
+   */
   function _renderPages(self, currentPage){
     const pager = self.getDom("pager");
 
@@ -85,6 +88,9 @@ DochiPagination.prototype = (function(){
     pager.appendChild(li_right);
   }
 
+  /**
+   * Page 렌더링
+   */
   function _rednerPage(self, page, isActive){
     const url = self.getConfig("url");
     const li = document.createElement("li");
@@ -92,7 +98,7 @@ DochiPagination.prototype = (function(){
 
     li.className = "page-num " + (isActive ? "active" : "waves-effect");
     a.setAttribute("href", [url, page].join("/"));
-    a.addEventListener("click", _handleChangePage(self));
+    a.addEventListener("click", _handleSelectPage(self));
 
     a.appendChild(document.createTextNode(page));
     li.appendChild(a);
@@ -100,6 +106,9 @@ DochiPagination.prototype = (function(){
     return li;
   }
   
+  /**
+   * Previous Button 렌더링
+   */
   function _renderChevronLeft(self, data){
     const isFirst = self.getData("currentPage") === 1;
     const li = document.createElement("li");
@@ -123,7 +132,10 @@ DochiPagination.prototype = (function(){
 
     return li;
   }
-
+  
+  /**
+   * Next Button 렌더링
+   */
   function _renderChevronRight(self, data){
     const isLast = self.getData("currentPage") === self.getData("maxPage");
     const li = document.createElement("li");
@@ -147,6 +159,9 @@ DochiPagination.prototype = (function(){
     return li;
   }
 
+  /**
+   * Page 변경
+   */
   function _changePage(self, page){
     const dataTable = self.getConfig("parent");
     const url = [dataTable.getConfig("url"), page].join("/");
@@ -158,7 +173,10 @@ DochiPagination.prototype = (function(){
     dataTable.reload(url);
   }
 
-  function _handleChangePage(self){
+  /**
+   * Page Number 클릭 이벤트 핸들러
+   */
+  function _handleSelectPage(self){
     return function(event){
       event.preventDefault();
       let page = Number(event.target.text);
@@ -167,6 +185,9 @@ DochiPagination.prototype = (function(){
     }
   }
 
+  /**
+   * Previous Page 클릭 이벤트 핸들러
+   */
   function _handlePrevPage(self){
     return function(event){
       event.preventDefault();
@@ -191,6 +212,9 @@ DochiPagination.prototype = (function(){
     }
   }
 
+  /**
+   * Next Page 클릭 이벤트 핸들러
+   */
   function _handleNextPage(self){
     return function(event){
       event.preventDefault();

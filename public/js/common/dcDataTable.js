@@ -80,6 +80,9 @@ DochiDataTable.prototype = (function(){
     }
   }
   
+  /**
+   * Table 렌더링
+   */
   function _renderTable(self, data){
     const table = self.getDom("table");
     const thead = _rednerTableHead(self);
@@ -91,6 +94,9 @@ DochiDataTable.prototype = (function(){
     table.appendChild(tbody);
   }
 
+  /**
+   * Thead 렌더링
+   */
   function _rednerTableHead(self){
     const columns = self.getConfig("columns");
     const thead = document.createElement("thead");
@@ -111,20 +117,8 @@ DochiDataTable.prototype = (function(){
       tr.appendChild(th_checkbox);
     }
 
-    // column 설정
     columns.forEach(function(column){
-      const th = document.createElement("th");
-
-      if( column.className ){
-        th.className = `${column.className}`;  
-      }
-      if( column.name ){
-        th.classList.add( column.name );
-      }
-      if( column.label ){
-        th.appendChild(document.createTextNode(column.label));
-      }
-      
+      const th = _renderTableHeadCell(self, column);
       tr.appendChild(th);
     });
 
@@ -133,17 +127,28 @@ DochiDataTable.prototype = (function(){
     return thead;
   }
 
-  function _renderCheckBox(self, name, value){
-    const checkbox = document.createElement("input");
-      
-    checkbox.type = "checkbox";
-    checkbox.id = name;
-    checkbox.name = name;
-    checkbox.value = value;
+  /**
+   * Table Head Cell 렌더링
+   */
+  function _renderTableHeadCell(self, data){
+    const cell = document.createElement("th");
 
-    return checkbox;
+    if( data.className ){
+      cell.className = `${data.className}`;  
+    }
+    if( data.name ){
+      cell.classList.add( data.name );
+    }
+    if( data.label ){
+      cell.appendChild(document.createTextNode(data.label));
+    }
+
+    return cell;
   }
 
+  /**
+   * Table Body 렌더링
+   */
   function _renderTableBody(self, datas){
     const tbody = document.createElement("tbody");
 
@@ -158,6 +163,23 @@ DochiDataTable.prototype = (function(){
     return tbody;
   }
 
+  /**
+   * Checkbox 렌더링
+   */
+  function _renderCheckBox(self, name, value){
+    const checkbox = document.createElement("input");
+      
+    checkbox.type = "checkbox";
+    checkbox.id = name;
+    checkbox.name = name;
+    checkbox.value = value;
+
+    return checkbox;
+  }
+
+  /**
+   * Table Row 렌더링
+   */
   function _renderRow(self, data){
     const columns = self.getConfig("columns");
     const tr = document.createElement("tr");
@@ -175,20 +197,41 @@ DochiDataTable.prototype = (function(){
     }
 
     columns.forEach(function(column){
-      const td = document.createElement("td");
-
-      if( column.className ){
-        td.className = `content-col ${column.className}`;  
-      }
-      td.classList.add( column.name );
-
-      td.appendChild(document.createTextNode(data[column.name]));
-      tr.appendChild(td); 
+      const td = _renderTableCell(self, column, data);
+      tr.appendChild(td);
     });
 
     return tr;
   }
 
+  /**
+   * Table Cell 렌더링
+   */
+  function _renderTableCell(self, column, data){
+    const cell = document.createElement("td");
+
+    if( column.className ){
+      cell.className = `content-col ${column.className}`;  
+    }
+    cell.classList.add(column.name);
+
+    let text = null;
+    if( column.onclick ){
+      text = document.createElement("a");
+      text.onclick = column.onclick(data.menu_grp_id, data.menu_id);
+      text.appendChild(document.createTextNode(data[column.name]));
+    } else {
+      text = document.createTextNode(data[column.name]);
+    }
+
+    cell.appendChild(text);
+    
+    return cell;
+  }
+
+  /**
+   * Reload Data
+   */
   function _reload(self, url){
     const resopnse = axios({
       method: "GET",

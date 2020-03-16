@@ -8,6 +8,36 @@ from utils.pipelines import common
 def getManageMenuListCount(*args, **kwargs):
   return kwargs["cond"] if "cond" in kwargs else None
 
+@mongo.select_one("manage", "mn_menu_mst")
+def selectManageMenuInfo(*args, **kwargs):
+  menu_grp_id = kwargs["menu_grp_id"]
+  menu_id = kwargs["menu_id"]
+
+  return [
+    {
+      "$match": {
+        "menu_grp_id": menu_grp_id,
+        "menu_id": menu_id 
+      }
+    },
+    {
+      "$addFields": {
+        "_id": { "$toString": "$_id" },
+      }
+    },
+    {
+      "$project": {
+        "_id": 1
+        , "menu_grp_id": 1
+        , "menu_id": 1
+        , "full_menu": 1
+        , "menu_name": 1
+        , "menu_index": 1
+        , "sort_order": 1
+      }
+    }
+  ]
+
 @mongo.select("manage", "mn_menu_mst")
 def selectManageMenuList(*args, **kwargs):
   skip = int(kwargs["skip"] if "skip" in kwargs else 1)
