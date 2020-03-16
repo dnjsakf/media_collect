@@ -6,10 +6,10 @@ const initConfig = {
   parent: null,
   pagination: null,
   params: {
-    page: 1,
-    rowsCount: 10,
+    page: 1
   },
-  pagesCount: 2,
+  pagesCount: 10,
+  rowsCount: 10,
   events: {}
 }
 
@@ -17,8 +17,6 @@ const DochiPagination = function(config, el){
   let datas = config.data || {}
   let insts = {}
   let doms = {}
-
-
   
   this.el = el;
   this.setConfig = (k,v)=>{ config[k] = v }
@@ -32,20 +30,29 @@ const DochiPagination = function(config, el){
   this.getInsts = ()=>insts;
   this.setDom = (k,v)=>{ doms[k] = v }
   this.getDom = (k)=>doms[k];
-
-  this.setPage = (v)=>{ config.page.current = v; }
-  this.getPage = ()=>config.page.current;
-  this.setMaxPage = (v)=>{ config.page.max = v; }
-  this.getMazPage = ()=>config.page.max;
-  this.setRowsCount = (v)=>{ config.page.rowsCount = v; }
-  this.getRowsCount = ()=> config.page.rowsCount;
 }
 
 DochiPagination.prototype = (function(){
+  function _validateModule(self){
+    let valid = true;
+
+    return valid;
+  }
+
   function _init(self){
-    _initRender(self);
-    _renderPages(self, self.getData("current"));
-    _initEvent(self);
+    const pagesCount = self.getConfig("pagesCount");
+    const maxPage = self.getData("maxPage");
+    const startPage = 1;
+    const endPage = pagesCount >= maxPage ? maxPage : pagesCount;
+    
+    self.setData("startPage", startPage);
+    self.setData("endPage", endPage);
+
+    if( _validateModule(self) ){
+      _initRender(self);
+      _renderPages(self, self.getData("currentPage"));
+      _initEvent(self);
+    }
   }
 
   function _initRender(self){
@@ -57,21 +64,13 @@ DochiPagination.prototype = (function(){
 
     const pager = document.querySelector("#pager");
     self.setDom("pager", pager);
-
-
-    self.setConfig("startPage", 1);
   }
 
   function _renderPages(self, currentPage){
     const pager = self.getDom("pager");
 
-    const pagesCount = self.getConfig("pagesCount");
-    const maxPage = self.getData("max");
-    const startPage = self.getConfig("startPage") + (( currentPage % (pagesCount + 1) ) == 0 ? pagesCount : 0 );
-    const endPage = ( maxPage > startPage + pagesCount - 1 ) ? ( startPage + pagesCount - 1 ) : maxPage;
-
-    self.setConfig("startPage", startPage);
-    console.log( currentPage, currentPage % (pagesCount+1),  startPage, endPage );
+    const startPage = self.getData("startPage");
+    const endPage = self.getData("endPage");
 
     const li_left = _renderChevronLeft(self);
     const li_right = _renderChevronRight(self);
@@ -102,146 +101,123 @@ DochiPagination.prototype = (function(){
   }
   
   function _renderChevronLeft(self, data){
+    const isFirst = self.getData("currentPage") === 1;
     const li = document.createElement("li");
     const a = document.createElement("a");
     const icon = document.createElement("icon");
   
-    li.className = self.getData("current") === 1 ? "disabled" : "waves-effect";
-    if( data && data.href ){
-      a.setAttribute("href", data.href);
-    }
+    li.className = isFirst ? "disabled" : "waves-effect";
+
     icon.className = "material-icons";
     icon.appendChild(document.createTextNode("chevron_left"));
 
-    a.addEventListener("click", _handlePrevPage(self));
+    if( data && data.href ){
+      a.setAttribute("href", data.href);
+    }
+    if( !isFirst ){
+      a.addEventListener("click", _handlePrevPage(self));
+    }
     a.appendChild(icon);
+
     li.appendChild(a);
 
     return li;
   }
 
   function _renderChevronRight(self, data){
+    const isLast = self.getData("currentPage") === self.getData("maxPage");
     const li = document.createElement("li");
     const a = document.createElement("a");
     const icon = document.createElement("icon");
 
-    li.className = self.getData("current") === self.getData("max") ? "disabled" : "waves-effect";
-    if( data && data.href ){
-      a.setAttribute("href", data.href);
-    }
+    li.className = isLast ? "disabled" : "waves-effect";
     icon.className = "material-icons";
     icon.appendChild(document.createTextNode("chevron_right"));
 
-    a.addEventListener("click", _handleNextPage(self));
+    if( data && data.href ){
+      a.setAttribute("href", data.href);
+    }
+    if( !isLast ){
+      a.addEventListener("click", _handleNextPage(self));
+    }
     a.appendChild(icon);
+
     li.appendChild(a);
 
     return li;
   }
 
-  function _handleChangePage(self){
+  function _changePage(self, page){
     const dataTable = self.getConfig("parent");
+    const url = [dataTable.getConfig("url"), page].join("/");
+    
+    self.setData("currentPage", page);
 
+    _renderPages(self, page);
+
+    dataTable.reload(url);
+  }
+
+  function _handleChangePage(self){
     return function(event){
       event.preventDefault();
+      let page = Number(event.target.text);
       
-      const page = Number(event.target.text);
-      const url = dataTable.getConfig("url");
-
-      const response = axios({
-        method: "GET",
-        url: [url,page].join("/"),
-        params: {
-          rowsCount: self.getData("rowsCount"),
-          
-        }
-      }).then(function(result){
-        const data = result.data.payload.list;
-        const pageInfo = result.data.payload.page;
-
-        console.log( pageInfo );
-
-        self.setDatas(pageInfo);
-
-        _renderPages(self, page)
-        dataTable.reload(data);
-
-      }).catch(function(error){
-        console.error(error);
-      });
+      _changePage(self, page);
     }
   }
 
   function _handlePrevPage(self){
-    const dataTable = self.getConfig("parent");
-
     return function(event){
       event.preventDefault();
-      
-      let page = Number(self.getData("current"));
-      if( page > 1 ){
-        page -= 1;
+
+      const prevPage = Number(self.getData("currentPage"))-1;
+      const pagesCount = self.getConfig("pagesCount");
+
+      const maxPage = self.getData("maxPage");
+      let startPage = self.getData("startPage");
+      let endPage = self.getData("endPage");
+
+      startPage = prevPage < startPage ? startPage - pagesCount : startPage;
+      endPage = startPage - pagesCount <= startPage ? startPage + pagesCount - 1 : endPage;
+      if( endPage >= maxPage ){
+        endPage = maxPage;
       }
-      const url = dataTable.getConfig("url");
 
-      const response = axios({
-        method: "GET",
-        url: [url,page].join("/"),
-        params: {
-          rowsCount: self.getData("rowsCount"),
-          
-        }
-      }).then(function(result){
-        const data = result.data.payload.list;
-        const pageInfo = result.data.payload.page;
-
-        self.setDatas(pageInfo);
-
-        _renderPages(self, page)
-        dataTable.reload(data);
-
-      }).catch(function(error){
-        console.error(error);
-      });
+      self.setData("startPage", startPage);
+      self.setData("endPage", endPage);
+  
+      _changePage(self, prevPage);
     }
   }
 
   function _handleNextPage(self){
-    const dataTable = self.getConfig("parent");
-
     return function(event){
       event.preventDefault();
-      
-      let page = Number(self.getData("current"));
-      if( page < self.getData("max") ){
-        page += 1;
+
+      const nextPage = Number(self.getData("currentPage"))+1;
+      const pagesCount = self.getConfig("pagesCount");
+      const maxPage = self.getData("maxPage");
+
+      let startPage = self.getData("startPage");
+      let endPage = self.getData("endPage");
+
+      startPage = nextPage > endPage ? startPage + pagesCount : startPage;
+      if( startPage <= 1 ){
+        startPage = 1;
       }
-      const url = dataTable.getConfig("url");
+      endPage = startPage + pagesCount >= maxPage ? maxPage : startPage + pagesCount - 1;
 
-      const response = axios({
-        method: "GET",
-        url: [url,page].join("/"),
-        params: {
-          rowsCount: self.getData("rowsCount"),
-          
-        }
-      }).then(function(result){
-        const pageInfo = result.data.payload.page;
-        const data = result.data.payload.list;
+      self.setData("startPage", startPage);
+      self.setData("endPage", endPage);
 
-        self.setDatas(pageInfo);
-
-        _renderPages(self, page)
-        dataTable.reload(data);
-
-      }).catch(function(error){
-        console.error(error);
-      });
+      _changePage(self, nextPage);
     }
   }
   
   function _initEvent(self){
     const pagination = self.getInst("pagination");
+
   }
   
   return {
@@ -249,7 +225,14 @@ DochiPagination.prototype = (function(){
       _init(this);
     },
     changePage: function(page){
-      _renderPages(this, page)
+      _changePage(this, page);
+    },
+    setPageInfo: function(pageInfo){
+      this.setData("currentPage", 1);
+      this.setData("total", pageInfo.total);
+      this.setData("maxPage", pageInfo.maxPage);
+      this.setData("startPage", 1);
+      this.setData("endPage", this.getConfig("pagesCount"));
     }
   }
 })();

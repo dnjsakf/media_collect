@@ -7,6 +7,8 @@ const initConfig = {
   ],
   parent: null,
   checkbox: true,
+  rowsCount: 10,
+  pagesCount: 10,
 }
 
 const DochiDataTable = function(config, el){
@@ -29,19 +31,30 @@ const DochiDataTable = function(config, el){
 }
 
 DochiDataTable.prototype = (function(){
+  function _validateModule(self){
+    let valid = true;
+
+    return valid;
+  }
+  
   function _init(self){
-    self.initData(function(res){
-      if( res.success ){
-        if( res.data ){
-          self.setDatas(res.data);
-        }
-        _initRender(self);
-        _renderTable(self, res.data.list);
-      } else {
-        console.error(res.error);
-      }
+    self.setConfig("params", {
+      rowsCount: self.getConfig("rowsCount")
     });
 
+    if( _validateModule(self) ){
+      self.initData(function(res){
+        if( res.success ){
+          if( res.data ){
+            self.setDatas(res.data);
+          }
+          _initRender(self);
+          _renderTable(self, res.data.list);
+        } else {
+          console.error(res.error);
+        }
+      });
+    }
   }
 
   function _initRender(self){
@@ -56,13 +69,13 @@ DochiDataTable.prototype = (function(){
 
     const pagination = self.getConfig("pagination");
     if( pagination ){
-      const current = self.getData("page").current;
       const pager = pagination.dcPagination({
         parent: self,
         url: self.getConfig("url"),
-        data: self.getData("page")
+        data: self.getData("page"),
+        rowsCount: self.getConfig("rowsCount"),
+        pagesCount: self.getConfig("pagesCount"),
       });
-      pager.changePage(current);
       self.setInst("pager", pager);
     }
   }
@@ -175,6 +188,22 @@ DochiDataTable.prototype = (function(){
 
     return tr;
   }
+
+  function _reload(self, url){
+    const resopnse = axios({
+      method: "GET",
+      url: url,
+      params: {
+        rowsCount: self.getConfig("rowsCount"),
+      }
+    }).then(function(result){
+      const data = result.data.payload.list;
+      
+      _renderTable(self, data);
+    }).catch(function(error){
+      console.error(error);
+    });
+  }
   
   function _initEvent(self){
     
@@ -183,9 +212,8 @@ DochiDataTable.prototype = (function(){
   return {
     init: function(){
       _init(this);
-    }, reload: function(data){
-      this.setData("data", data);
-      _renderTable(this, data);
+    }, reload: function(url){
+      _reload(this, url);
     }
   }
 })();

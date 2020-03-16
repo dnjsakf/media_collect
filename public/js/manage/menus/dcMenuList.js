@@ -42,18 +42,26 @@ const DochiMenuList = function(config, el){
 }
 
 DochiMenuList.prototype = (function(){
+  function _validateModule(self){
+    let valid = true;
+
+    return valid;
+  }
+
   function _init(self){
-    self.initData(function(res){
-      if( res.success ){
-        if( res.data ){
-          self.setDatas(res.data);
+    if( _validateModule(self) ){
+      self.initData(function(res){
+        if( res.success ){
+          if( res.data ){
+            self.setDatas(res.data);
+          }
+          _initRender(self); 
+          _initEvent(self);
+        } else {
+          console.error(res.error);
         }
-        _initRender(self); 
-        _initEvent(self);
-      } else {
-        console.error(res.error);
-      }
-    });
+      });
+    }
   }
 
   function _initRender(self){
@@ -103,12 +111,11 @@ DochiMenuList.prototype = (function(){
     const dataTable = document.querySelector("#content_list").dcDataTable({
       parent: self,
       url: "/api/manage/menus/menuList",
-      params: {
-        rowsCount: 2
-      },
       data: {
         list: self.getData("list"),
       },
+      rowsCount: 10,
+      pagesCount: 10,
       checkbox: true,
       columns: columns,
       pagination: pagination,
@@ -140,15 +147,6 @@ DochiMenuList.prototype = (function(){
       options.title = "메뉴 등록";
     } else if ( saveType === "update" ){
       options.title = "메뉴 수정";
-      /*
-      options.data = {
-        url: "/manage/menus/save"
-        , data: {
-          "menu_grp_id": data.split("/")[0]
-          , "menu_id": data.split("/")[1]
-        }
-      }
-      */
     }
 
     return function(event){

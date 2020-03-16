@@ -21,11 +21,9 @@ def getManageMenusMenuList(page=None):
     "payload": {
       "list": data,
       "page": {
-        "current": page,
-        "total": count,
-        "max": maxPage,
-        "rowsCount": rowsCount,
-        "start": skip
+        "currentPage": page,
+        "maxPage": maxPage,
+        "total": count
       }
     }
   })
