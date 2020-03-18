@@ -76,15 +76,6 @@ DochiMenuForm.prototype = (function(){
   function _initEvent(self){
     
   }
-
-  function handleFormClearButton(self, form_name){
-    const form = self.el.getElementById(form_name);
-    return function(event){
-      event.preventDefault();
-
-      Common.form.clear(form);
-    }
-  }
   
   return {
     init: function(){

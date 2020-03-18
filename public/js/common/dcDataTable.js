@@ -256,6 +256,9 @@ DochiDataTable.prototype = (function(){
     init: function(){
       _init(this);
     }, reload: function(url){
+      if( !url ){
+        url = this.getConfig("url");
+      }
       _reload(this, url);
     }
   }

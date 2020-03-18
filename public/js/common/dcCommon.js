@@ -178,8 +178,8 @@ Common.modal = (function(){
     "endingTop": "5%"
   }
 
-  function _open(options){
-    axios({
+  async function _open(options){
+    const modal = await axios({
       method: "GET"
       , url: options.url
       , baseurl: "http://localhost:3000/"
@@ -190,38 +190,47 @@ Common.modal = (function(){
     }).then(function(result){
       options.data = result.data.payload.data;
 
-      const modal = _makeModal(options);
-      if( modal ){
-        modal.open();
+      const _modal = _makeModal(options);
+      if( _modal ){
+        _modal.open();
       }
+      return _modal;
     }).catch(function(error){
-      console.error( error );
+      console.error(error);
+      return _null;
     });
+    return modal;
   }
 
   function _openHTML(options, html){
-    const modal = _makeModal(options, html);
-    if( modal ){
-      modal.open();
-    }
-  }
-  
-  function _openTmeplate(options){
-    axios({
-      method: "GET"
-      , url: options.url
-      , baseurl: "http://localhost:3000/"
-      , params: options.params || {}
-      // , headers: {
-      //   "Content-Type": "text/html"
-      // }
-    }).then(function(result){
-      const modal = _makeModal(options, result.data.html);
+    return new Promise(function(resolve, reject){
+      const modal = _makeModal(options, html);
       if( modal ){
         modal.open();
       }
-    }).catch(function(error){
-      console.error( error );
+      resolve(modal);
+    });
+  }
+  
+  function _openTmeplate(options){
+    return new Promise(function(resolve, reject){
+      const response = axios({
+        method: "GET"
+        , url: options.url
+        , baseurl: "http://localhost:3000/"
+        , params: options.params || {}
+        , headers: {
+          "Content-Type": "text/html"
+        }
+      }).then(function(result){
+        const modal = _makeModal(options, result.data.html);
+        if( modal ){
+          modal.open();
+        }
+        resolve(modal);
+      }).catch(function(error){
+        console.error( error );
+      });
     });
   }
   
@@ -312,17 +321,20 @@ Common.modal = (function(){
     if( option.onclick ){
       button.addEventListener("click", option.onclick);
     }
-    button.appendChild(document.createTextNode(option.text));
+    button.appendChild(document.createTextNode(option.label));
     
     return button;
   }
   
   return {
-    open: function(options, html){
-      _open(options, html);
+    open: function(options){
+      return _open(options);
+    },
+    openHTML: function(options, html){
+      return _openHTML(options, html);
     },
     openTemplate: function(options){
-      _openTmeplate(options);
+      return _openTmeplate(options);
     }
   }
 })();

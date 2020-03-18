@@ -1,0 +1,18 @@
+/* 입력창 설정 */
+#search_text { width: 200px; }
+
+/* 리스트 설정 */
+#mask_list { list-style: decimal; }
+#mask_list > li > a { display: inline-block;  }
+
+/* 마스크 색상 지정 */
+#mask_list > li > .plenty { background-color: green; }
+#mask_list > li > .some { background-color: yellow; }
+#mask_list > li > .few { background-color: red; }
+#mask_list > li > .empty { background-color: gray; }
+#mask_list > li > .break { background-color: darkgray; }
+
+/* 출력 사이즈 설정 */
+#mask_list > li > .mask-remain_stat { width: 150px; text-align: center; }
+#mask_list > li > .mask-name { width: 150px; text-align: center; }
+#mask_list > li > .mask-addr {  }

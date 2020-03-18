@@ -67,7 +67,7 @@ DochiMenuList.prototype = (function(){
   function _initRender(self){
     const columns = [
       { name: "menu_grp_id", className: "menu_grp_id", label: "메뉴그룹ID" },
-      { name: "menu_id", className: "menu_id", label: "메뉴ID", onclick: _handleMenuModal("update") },
+      { name: "menu_id", className: "menu_id", label: "메뉴ID", onclick: _handleMenuModal(self, "update") },
       { name: "full_menu", className: "full_menu", label: "전체메뉴ID" },
       { name: "menu_name", className: "menu_name", label: "메뉴명" },
       { name: "menu_index", className: "menu_index", label: "인덱스" },
@@ -128,73 +128,82 @@ DochiMenuList.prototype = (function(){
   function _initEvent(self){
     const btn_insert_menu = self.el.querySelector("#btn_insert_menu");
     if( btn_insert_menu ){
-      btn_insert_menu.addEventListener("click", _handleMenuModal("insert"));
+      btn_insert_menu.addEventListener("click", _handleMenuModal(self, "insert"));
     }
   }
 
-  function _handleMenuModal(saveType){
-    let options = {
-      url: "/tmpl/manage/menus/menuForm"
+  function _handleMenuModal(self, saveType){
+    const options = {
+      url: "/api/manage/menus",
+      "buttons": [
+        {
+          "id": "manage_menu_cancle",
+          "label": "취소",
+          "className": "modal-close",
+          "onclick": _handleClearForm(self)
+        },
+        {
+          "id": "manage_menu_save",
+          "label": "저장",
+          "className": "modal-save",
+          "onclick": _handleSaveForm(self)
+        }
+      ]
     }
-
-    options.url = "/api/manage/menus"
 
     if( saveType === "insert" ){
       options.title = "메뉴 등록";
+      return async function(event){
+        event.preventDefault();
+        
+        const modal = await Common.modal.open(options);
+      }
     } else if ( saveType === "update" ){
       options.title = "메뉴 수정";
-    }
-
-    return function(menu_grp_id, menu_id){
-      return function(event){
-        event.preventDefault();
-        options.params = {
-          menu_grp_id: menu_grp_id,
-          menu_id: menu_id
+      return function(menu_grp_id, menu_id){
+        return async function(event){
+          event.preventDefault();
+          options.params = {
+            menu_grp_id: menu_grp_id,
+            menu_id: menu_id
+          }
+          const modal = await Common.modal.open(options);
         }
-        _openModal(options);
       }
     }
   }
-  
-  function _openModal(options){
-    Object.assign(options, {
-      "buttons": [
-        {
-          "text": "취소",
-          "className": "modal-close"
-        },
-        {
-          "text": "저장",
-          "className": "modal-save",
-          "onclick": _saveMenu
-        }
-      ]
-    });
-    Common.modal.open(options);
+
+  function _handleClearForm(self){
+    // const form = self.el.getElementById(form_name);
+    return function(event){
+      event.preventDefault();
+
+      // Common.form.clear(form);
+    }
   }
 
-  function _saveMenu(event){
-    event.preventDefault();
-  
-    const modal = event.target.closest(".modal");
-    const inst = M.Modal.getInstance(modal);
-    const form = inst.el.querySelector("form");
-    const values = Common.form.getValidValues(form);
+  function _handleSaveForm(self){
+    return function(event){
+      event.preventDefault();
+    
+      const modal = event.target.closest(".modal");
+      const inst = M.Modal.getInstance(modal);
+      const form = inst.el.querySelector("form");
+      const values = Common.form.getValidValues(form);
 
-    console.log( values );
+      if( values.valid ){
+        Common.form.save({
+          url: "/manage/menus/save",
+          data: values.data
+        }, function(result, error){
+          if( result ){
+            const dataTable = self.getInst("dataTable");
 
-    if( values.valid ){
-      Common.form.save({
-        url: "/manage/menus/save",
-        data: values.data
-      }, function(result, error){
-        if( result ){
-          inst.close();
-        } else {
-          alert("error"); 
-        }
-      });
+            dataTable.reload();
+            inst.close();
+          }
+        });
+      }
     }
   }
 
