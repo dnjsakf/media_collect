@@ -15,4 +15,4 @@
 /* 출력 사이즈 설정 */
 #mask_list > li > .mask-remain_stat { width: 150px; text-align: center; }
 #mask_list > li > .mask-name { width: 150px; text-align: center; }
-#mask_list > li > .mask-addr {  }
+#mask_list > li > .mask-addr { text-align: left; }
