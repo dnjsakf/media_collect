@@ -1,35 +1,44 @@
+// 공적마스크 판매현황 정보
 const remain_stats = {
-  plenty: {
-    index: 1,
-    label: "100개 이상",
-    color: "green"
+  "plenty": {
+    "index": 1,
+    "label": "100개 이상",
+    "color": "green"
   },
-  some: {
-    index: 2,
-    label: "30개 이상 100개미만",
-    color: "yellow"
+  "some": {
+    "index": 2,
+    "label": "30개 이상 100개미만",
+    "color": "yellow"
   },
-  few: {
-    index: 3,
-    label: "2개 이상 30개 미만",
-    color: "red"
+  "few": {
+    "index": 3,
+    "label": "2개 이상 30개 미만",
+    "color": "red"
   },
-  empty: {
-    index: 4,
-    label: "1개 이하",
-    color: "gray"
+  "empty": {
+    "index": 4,
+    "label": "1개 이하",
+    "color": "gray"
   },
-  break: {
-    index: 5,
-    label: "판매중지",
-    color: "darkgray"
+  "break": {
+    "index": 5,
+    "label": "판매중지",
+    "color": "darkgray"
   }
 }
 
+// Element 탐색
 const search_text = document.getElementById("search_text");
 const search_btn = document.getElementById("search_btn");
 const filter_list = document.getElementById("filter_list");
 const mask_list = document.getElementById("mask_list");
+
+// 입력창에서 엔터키 입력
+search_text.addEventListener("keydown", function(event){
+  if( event.keyCode === 13 ){
+    search_btn.click();
+  }
+});
 
 // 검색 버튼 클릭 이벤트
 search_btn.addEventListener("click", handleSearch);
@@ -52,8 +61,8 @@ Object.keys(remain_stats).forEach(function(key){
   checkbox.id = el_id;
   checkbox.checked = true;
 
-  li.appendChild(label);
   li.appendChild(checkbox);
+  li.appendChild(label);
 
   filter_list.appendChild(li);
 });
@@ -107,7 +116,7 @@ function renderItem(data){
   return li;
 }
 
-// API에 데이터 요청하기, Promise 반환
+// API에 데이터 요청하기
 function getDatas(address, filtering){
   const server_url = "https://8oi9s0nnth.apigw.ntruss.com/corona19-masks/v1";
   const api_uri = "/storesByAddr/json";
@@ -128,10 +137,8 @@ function getDatas(address, filtering){
     const filtered = !!filtering ? stores.filter(function(info){
       return filtering.indexOf(info.remain_stat) !== -1;
     }) : stores;
-    
-    console.log( filtered );
 
-    // 정렬
+    // 데이터 정렬
     const sorted = filtered.sort(function(a, b){
       const a_index = remain_stats[a.remain_stat].index;
       const b_index = remain_stats[b.remain_stat].index;
@@ -142,7 +149,7 @@ function getDatas(address, filtering){
     return sorted;
   }).catch(function(error){
     console.error(error);
-    return null;
+    return [];
   });
 
   return data;

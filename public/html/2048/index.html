@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="kr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2048</title>
+  <style type="text/css">
+    * { padding: 0; margin: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; }
+
+    #root { width: 100%; height: 100%; outline: none; }
+
+    #board { margin: 0 auto; }
+    
+    #board .pannel.row {  }
+    #board .row-wrapper { position: relative; }
+    #board .row-wrapper .pannel.col { position: absolute; font-size: 2em; box-shadow: 0 0 0 1px black inset; text-align: center; vertical-align: baseline; }
+    
+    .w50 { width: 50px; }
+    .w75 { width: 75px; }
+    .w150 { width: 150px; }
+    
+    .h50 { height: 50px; }
+    .h75 { height: 75px; }
+    .h150 { height: 150px; }
+
+    .m5 { margin-left: 5px; margin-top: 5px; }
+
+    .move.top{ animation: move_top 0.3s; }
+    .move.down{ animation: move_down 0.3s; }
+    .move.left{ animation: move_left 0.3s; }
+    .move.right{ animation: move_right 0.3s; }
+
+    @keyframes move_top {
+      0% { transform: translateY(0) }
+      50% { transform: translateY(-5px) }
+      100% { transform: translateY(0) }
+    }
+    @keyframes move_down {
+      0% { transform: translateY(0) }
+      50% { transform: translateY(5px) }
+      100% { transform: translateY(0) }
+    }
+    @keyframes move_left {
+      0% { transform: translateX(0) }
+      50% { transform: translateX(-5px) }
+      100% { transform: translateX(0) }
+    }
+    @keyframes move_right {
+      0% { transform: translateX(0) }
+      50% { transform: translateX(5px) }
+      100% { transform: translateX(0) }
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+</head>
+<body>
+  <div id="root">
+    <div id="board"></div>
+  </div>
+  <script src="./js/common.js"></script>
+  <script src="./modules/Handler/Handler.js"></script>
+  <script src="./modules/Board/BoardCol.js"></script>
+  <script src="./modules/Board/BoardRow.js"></script>
+  <script src="./modules/Board/Board.js"></script>
+  <script type="text/javascript">
+    const boardInst = document.getElementById("board").Board({
+      size: "medium"
+    });
+  </script>
+</body>
+</html>
