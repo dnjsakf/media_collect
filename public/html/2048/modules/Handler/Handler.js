@@ -36,8 +36,6 @@ Handler.prototype = (function(){
   
   function _handleMouseDrag(self, setting){
     return function(event){
-      event.preventDefault();
-      
       const lock = self.getData("lock");
       const focusPos = self.getData("focusPos");
       
@@ -49,22 +47,41 @@ Handler.prototype = (function(){
   
   function _handleMouseDown(self, setting){
     return function(event){
-      event.preventDefault();
+      event.preventDefault(); 
+      
       self.setData("lock", true);
-      self.setData("focusPos", { x: event.clientX, y: event.clientY });
+      if( event.type === "mousedown" ){
+        self.setData("focusPos", {
+          x: event.clientX, 
+          y: event.clientY
+        });
+      } else if ( event.type === "touchstart" ) {
+        console.log( event.changedTouches );
+        
+        self.setData("focusPos", {
+          x: event.changedTouches[0].clientX, 
+          y: event.changedTouches[0].clientY
+        });
+      }
     }
   }
   
   function _handleMouseUp(self, setting){
     return function(event){
       event.preventDefault();
+      console.log( event );
       
       const lock = self.getData("lock");
       const focusPos = self.getData("focusPos");
       
       if( lock && focusPos ){
-        const leftAndRight = focusPos.x - event.clientX;
-        const upAndDown = event.clientY - focusPos.y;
+        let clientX = ( event.type === "touchend" ? event.changedTouches[0].clientX : event.clientX );
+        let clientY = ( event.type === "touchend" ? event.changedTouches[0].clientY : event.clientY );
+        
+        const leftAndRight = focusPos.x - clientX;
+        const upAndDown = clientY - focusPos.y;
+        
+        console.log( focusPos, clientX, clientY ); 
         
         let vector = null;
         if( Math.abs(upAndDown) > Math.abs(leftAndRight) ){

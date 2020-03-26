@@ -1,9 +1,22 @@
 const Common = function(){}
 
 Common.prototype = (function(){
+  function _isMobile(){
+    const checker = [
+      "iPhone", "iPod", "Android", "Windows CE", 
+      "BlackBerry", "Symbian", "Windows Phone", 
+      "webOS", "Opera Mini", "Opera Mobi", "POLARIS", 
+      "IEMobile", "lgtelecom", "nokia", "SonyEricsson",
+      "LG","SAMSUNG","Samsung"
+    ];
+    const regex = RegExp(checker.join("|"), "i")
+    
+    return regex.test(navigator.userAgent);
+  }
+
   return {
-    test: function(){
-      
+    isMobile: function(){
+      return _isMobile();
     }
   }
 })();
@@ -62,7 +75,7 @@ Common.event = (function(){
       return binding.target === el && binding.action === action;
     });
     if( binded.length === 0 ){
-      el.addEventListener(action, event, true);
+      el.addEventListener(action, event, args);
       bindings.push({
         target: el,
         action: action,
@@ -72,13 +85,13 @@ Common.event = (function(){
     }
   }
 
-  function _unbind(el, action){
+  function _unbind(el, action, args){
     const binded = bindings.filter(function(binding){
       return binding.target === el && binding.action === action;
     });
     if( binded && binded.length > 0 ){
       const _binded = binded[0];
-      _binded.target.removeEventListener(_binded.action, _binded.event, true);
+      _binded.target.removeEventListener(_binded.action, _binded.event, args);
       bindings = bindings.filter(function(binding){
         return JSON.stringify(binding) !== JSON.stringify(_binded)
       });
@@ -89,12 +102,11 @@ Common.event = (function(){
     bind: function(el, action, event, args){
       _bind(el, action, event, args)
     },
-    unbind: function(el, action){
-      _unbind(el, action);
+    unbind: function(el, action, args){
+      _unbind(el, action, args);
     }
   }
 })();
-
 
 Array.prototype.cross = function(cross, reverse){
   const crossedMatrix = cross ? this.map(function(row){

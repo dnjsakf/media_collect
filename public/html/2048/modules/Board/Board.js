@@ -26,7 +26,7 @@ const Board = function(_config, _el){
   self.getStatus = (k)=>status[k];
   self.getAllStatus = ()=>status;
 
-  Common.extends.bind(self)([Handler]);
+  Common.extends.bind(self)([Common, Handler]);
 }
 
 Board.prototype = (function(){
@@ -43,6 +43,7 @@ Board.prototype = (function(){
   }
   
   function _initData(self){
+    const isMobile = self.isMobile();
     const size = self.getConfig("size");
     if( size ){
       const matrixMapping = {
@@ -51,9 +52,9 @@ Board.prototype = (function(){
         "large": 9
       }
       const boxSizeMapping = {
-        "small": 120,
-        "medium": 75,
-        "large": 50
+        "small": isMobile ? 60 : 120,
+        "medium": isMobile ? 37 : 75,
+        "large": isMobile ? 25 :50
       }
       self.setData("matrixSize", matrixMapping[size]);
       self.setData("boxSize", boxSizeMapping[size]);
@@ -115,16 +116,24 @@ Board.prototype = (function(){
 
   function _initEvent(self){
     const onHandleKeyDown = self.handleKeyDown();
-    Common.event.unbind(document, "keydown", onHandleKeyDown);
-    Common.event.bind(document, "keydown", onHandleKeyDown);
+    Common.event.unbind(document, "keydown", onHandleKeyDown, false);
+    Common.event.bind(document, "keydown", onHandleKeyDown, false);
     
     const onMouseDown = self.handleMouseDown();
-    Common.event.unbind(document, "mousedown", onMouseDown);
-    Common.event.bind(document, "mousedown", onMouseDown);
+    Common.event.unbind(document, "mousedown", onMouseDown, false);
+    Common.event.bind(document, "mousedown", onMouseDown, false);
+    
+    const onTouchDown = self.handleMouseDown();
+    Common.event.unbind(document, "touchstart", onTouchDown, {passive:false});
+    Common.event.bind(document, "touchstart", onTouchDown, {passive:false});
     
     const onMouseUp = self.handleMouseUp();
-    Common.event.unbind(document, "mouseup", onMouseUp);
-    Common.event.bind(document, "mouseup", onMouseUp);
+    Common.event.unbind(document, "mouseup", onMouseUp, false);
+    Common.event.bind(document, "mouseup", onMouseUp, false);
+    
+    const onTouchUp = self.handleMouseUp();
+    Common.event.unbind(document, "touchend", onTouchUp, {passive:false});
+    Common.event.bind(document, "touchend", onTouchUp, {passive:false});
   }
   
   function _createNumber(self, count){
