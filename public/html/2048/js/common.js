@@ -3,10 +3,56 @@ const Common = function(){}
 Common.prototype = (function(){
   return {
     test: function(){
-      console.log( 'test' );
+      
     }
   }
 })();
+
+Common.extends = function(funcs, setting){
+  const self = this;
+  function _load(func){
+    if( typeof(func) === 'function' ){
+      const obj = new func(setting);
+      Object.keys(obj.__proto__).forEach(function(proto){
+        if( typeof(self.__proto__[proto]) === 'undefined' ){
+          
+          self.__proto__[proto] = obj.__proto__[proto]
+        }
+      });
+    }
+  }
+  if(funcs && Array.isArray(funcs)){
+    funcs.forEach(function(func, idx){
+      let _setting = null;
+      if( setting && Array.isArray(setting) ){
+        try {
+          _setting = setting[idx];
+        } catch {}
+      }
+      _load(func, _setting);
+    });
+  } else {
+    _load(funcs, setting);
+  }
+}
+
+Common.bindElement = function(func, initConfig){
+  Element.prototype[func.name] = function(setting){
+    const config = initConfig;
+
+    if( setting ){
+      Object.assign(config, setting);
+    }
+
+    const obj = new func(config, this);
+
+    obj.init();
+
+    return obj;
+  }
+}
+
+
 
 Common.event = (function(){
   bindings = [];
@@ -49,6 +95,25 @@ Common.event = (function(){
   }
 })();
 
+
+Array.prototype.cross = function(cross, reverse){
+  const crossedMatrix = cross ? this.map(function(row){
+    return row.map(function(){
+      return Array();
+    });
+  }) : this;
+  
+  if( cross ){
+    this.forEach(function(row, rowIdx){
+      row.forEach(function(col, colIdx){
+        crossedMatrix[colIdx][rowIdx] = col;
+      });
+    });
+  }
+  
+  return reverse ? crossedMatrix.map(row=>[].concat(row).reverse()) : crossedMatrix;
+}
+
 Element.prototype.bindings = [];
 Element.prototype.bindEvent = function(action, event, args){
   const el = this;
@@ -78,48 +143,6 @@ Element.prototype.unbindEvent = function(action){
     });
   }
 }
-
-Common.extends = function(funcs, setting){
-  const self = this;
-  function _load(func){
-    if( typeof(func) === 'function' ){
-      const obj = new func(setting);
-      Object.keys(obj.__proto__).forEach(function(proto){
-        if( typeof(self.__proto__[proto]) === 'undefined' ){
-          
-          self.__proto__[proto] = obj.__proto__[proto]
-        }
-      });
-    }
-  }
-  if(funcs && Array.isArray(funcs)){
-    funcs.forEach(function(func, idx){
-      let _setting = null;
-      if( setting && Array.isArray(setting) ){
-        try {
-          _setting = setting[idx];
-        } catch {}
-      }
-      _load(func, _setting);
-    });
-  } else {
-    _load(funcs, setting);
-  }
-}
-
-Common.bindElement = function(func, initConfig){
-  Element.prototype[func.name] = function(setting){
-    const config = initConfig;
-
-    if( setting ){
-      Object.assign(config, setting);
-    }
-
-    // const obj = Common.extends(new func(config, this));
-    const obj = new func(config, this);
-
-    obj.init();
-
-    return obj;
-  }
+Element.prototype.getInstance = function(){
+  return this.instance;
 }

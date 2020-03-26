@@ -1,11 +1,13 @@
-const BoardRow = function(config, el){
+const BoardRow = function(_config, _el){
   const self = this;
+  const config = Object.assign({}, _config);
   const datas = {}
   const insts = {}
   const doms = {}
   
-  self.el = el;
-  
+  self.el = _el;
+  self.el.instance = self;
+
   self.setConfig = (k,v)=>{ config[k] = v; }
   self.getConfig = (k)=>config[k];      
   self.setData = (k,v)=>{ datas[k] = v; }

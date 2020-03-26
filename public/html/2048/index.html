@@ -16,22 +16,19 @@
     #board .row-wrapper { position: relative; }
     #board .row-wrapper .pannel.col { position: absolute; font-size: 2em; box-shadow: 0 0 0 1px black inset; text-align: center; vertical-align: baseline; }
     
-    .w50 { width: 50px; }
-    .w75 { width: 75px; }
-    .w150 { width: 150px; }
-    
-    .h50 { height: 50px; }
-    .h75 { height: 75px; }
-    .h150 { height: 150px; }
+    .s50 { width: 50px; height: 50px; }
+    .s75 { width: 75px; height: 75px; }
+    .s120 { width: 120px; height: 120px; }
+    .s150 { width: 150px; height: 150px; }
 
     .m5 { margin-left: 5px; margin-top: 5px; }
 
-    .move.top{ animation: move_top 0.3s; }
+    .move.up{ animation: move_up 0.3s; }
     .move.down{ animation: move_down 0.3s; }
     .move.left{ animation: move_left 0.3s; }
     .move.right{ animation: move_right 0.3s; }
 
-    @keyframes move_top {
+    @keyframes move_up {
       0% { transform: translateY(0) }
       50% { transform: translateY(-5px) }
       100% { transform: translateY(0) }
@@ -65,7 +62,7 @@
   <script src="./modules/Board/Board.js"></script>
   <script type="text/javascript">
     const boardInst = document.getElementById("board").Board({
-      size: "medium"
+      size: "small"
     });
   </script>
 </body>

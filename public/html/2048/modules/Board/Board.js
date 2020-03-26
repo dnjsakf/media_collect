@@ -1,13 +1,19 @@
 // import Handler from './modules/Handler/Handler.js'
 
-const Board = function(config, el){
+const Board = function(_config, _el){
   const self = this;
+  const config = Object.assign({}, _config);
   const datas = {}
   const insts = {}
   const doms = {}
+  const status = {
+    focus: null,
+    lock: false
+  }
   
-  self.el = el;
-  
+  self.el = _el;
+  self.el.instance = self;
+
   self.setConfig = (k,v)=>{ config[k] = v; }
   self.getConfig = (k)=>config[k];      
   self.setData = (k,v)=>{ datas[k] = v; }
@@ -16,6 +22,9 @@ const Board = function(config, el){
   self.getInst = (k)=>insts[k];
   self.setDom = (k,v)=>{ doms[k] = v; }
   self.getDom = (k)=>doms[k];
+  self.setStatus = (k,v)=>{ status[k] = v; }
+  self.getStatus = (k)=>status[k];
+  self.getAllStatus = ()=>status;
 
   Common.extends.bind(self)([Handler]);
 }
@@ -37,16 +46,16 @@ Board.prototype = (function(){
     const size = self.getConfig("size");
     if( size ){
       const matrixMapping = {
-        "small": { rows: 3, cols: 3 },
-        "medium": { rows: 6, cols: 6 },
-        "large": { rows: 9, cols: 9 }
+        "small": 4,
+        "medium": 6,
+        "large": 9
       }
       const boxSizeMapping = {
-        "small": { width: 150, height: 150 },
-        "medium": { width: 75, height: 75 },
-        "large": { width: 50, height: 50 }
+        "small": 120,
+        "medium": 75,
+        "large": 50
       }
-      self.setData("matrix", matrixMapping[size]);
+      self.setData("matrixSize", matrixMapping[size]);
       self.setData("boxSize", boxSizeMapping[size]);
     }
   }
@@ -56,17 +65,22 @@ Board.prototype = (function(){
       _initData(self);
       _initRender(self);
       _initEvent(self);
+      
+      _createNumber(self, self.getConfig("defaultCount"));
     }
   }
   
   function _initRender(self){
+    const wrapper = document.createElement("div");
+    wrapper.id = "board_wrapper";
+    
     if( self.el.children ){
       Array.from(self.el.children).forEach(children=>children.remove());
     }
   
-    let cols = []
-    const matrix = self.getData("matrix");
-    const rows = Array(matrix.rows).fill(1).map(function(rowInc, rowIdx){
+    const matrixSize = self.getData("matrixSize");
+    const matrix = [];
+    const rows = Array(matrixSize).fill(1).map(function(rowInc, rowIdx){
       const rowIndex = rowIdx+rowInc;
       const row = document.createElement("div").BoardRow({
         parent: self.el,
@@ -74,75 +88,155 @@ Board.prototype = (function(){
         id: "r"+rowIndex
       });
       
-      const _cols = Array(matrix.cols).fill(1).map(function(colInc, colIdx){
+      const cols = Array(matrixSize).fill(1).map(function(colInc, colIdx){
         const colIndex = colIdx+colInc;
-        const col = document.createElement("div").BoardCol({
+        return document.createElement("div").BoardCol({
           parent: row,
           index: colIndex,
           id: "c"+colIndex,
           size: self.getData("boxSize")
         });
-
-        if( rowIndex === 1 && colIndex === 1 ){
-          col.appendNumber(1);
-        }
-
-        if( rowIndex === 2 && colIndex === 1 ){
-          col.appendNumber(1);
-        }
-        if( rowIndex === 2 && colIndex === 6 ){
-          col.appendNumber(2);
-        }
-        if( rowIndex === 3 && colIndex === 1 ){
-          col.appendNumber(1);
-        }
-        if( rowIndex === 3 && colIndex === 5 ){
-          col.appendNumber(1);
-        }
-        if( rowIndex === 3 && colIndex === 6 ){
-          col.appendNumber(2);
-        }
-
-        return col;
       });
       
-      row.setCols(_cols);
-      cols.push(_cols);
+      row.setCols(cols);
+      
+      matrix.push(cols);
+      
+      wrapper.appendChild(row.el);
       
       return row;
     });
-
-    if( cols ){
-      self.setInst("cols", cols);
-    }
-
-    if( rows && Array.isArray(rows) ){
-      self.setInst("rows", rows);
-      rows.forEach(function(row){
-        self.el.appendChild(row.el);
-      });
-    }
+    
+    self.setInst("rows", rows);
+    self.setData("matrix", matrix);
+    
+    self.el.appendChild(wrapper);
   }
 
   function _initEvent(self){
-    const handleKeyDown = self.handleKeyDown({
-      rows: self.getInst("rows"),
-      cols: self.getInst("cols"),
-      matrix: self.getData("matrix").rows,
+    const onHandleKeyDown = self.handleKeyDown();
+    Common.event.unbind(document, "keydown", onHandleKeyDown);
+    Common.event.bind(document, "keydown", onHandleKeyDown);
+    
+    const onMouseDown = self.handleMouseDown();
+    Common.event.unbind(document, "mousedown", onMouseDown);
+    Common.event.bind(document, "mousedown", onMouseDown);
+    
+    const onMouseUp = self.handleMouseUp();
+    Common.event.unbind(document, "mouseup", onMouseUp);
+    Common.event.bind(document, "mouseup", onMouseUp);
+  }
+  
+  function _createNumber(self, count){
+    const defaultNumber = self.getConfig("defaultNumber");
+    
+    const emptyCols = self.getData("matrix").reduce((prev, crnt, idx)=>{
+      if( idx === 1 ){
+        prev = prev.filter(col=>!col.getData("number"));
+      }
+      return prev.concat(crnt.filter(col=>!col.getData("number")));
     });
+    
+    if( emptyCols.length > 0 ){
+      for(let i=0; i<count; i++){
+        emptyCols[parseInt(Math.random()*emptyCols.length)].setNumber(defaultNumber);
+      }
+    }
+  }
+  
+   function _extractNumber(self, numbers){
+    if( numbers && Array.isArray(numbers) && numbers.length > 1 ){
+      const storage = [];
+      numbers.reduce(function(prev, crnt, _idx){
+        const throwNumber = prev === crnt ? crnt+prev : crnt;
+        
+        if( throwNumber === crnt ){
+          storage.push(prev);
+        }
+        if( _idx === numbers.length -1 ){
+          storage.push(throwNumber);
+        }
+        
+        return throwNumber;
+      });
+      return storage;
+    } else {
+      return numbers;
+    }
+  }
+  
+  function _move(self, vector){
+    if( vector === "up" ){
+      reverse = true;
+      cross = true;
+    } else if( vector === "down" ){
+      reverse = false;
+      cross = true;
+    } else if( vector === "left" ){
+      reverse = true;
+      cross = false;
+    } else if( vector === "right" ){
+      reverse = false;
+      cross = false;
+    }
+    
+    _reset(self, cross, reverse);
+    _createNumber(self, 1);
+    _moveAnimation(self, vector);
+  }
+  
+  function _moveAnimation(self, vector){
+    if( !self.el.classList.contains("move") ){
+      self.el.classList.add("move", vector);
+      setTimeout(function(){
+        self.el.classList.remove("move", vector);
+      }, 310);
+    }
+  }
+  
+  function _reset(self, cross, reverse){
+    
+    const crossedMatrix = self.getData("matrix").cross(cross, reverse);
+    
+    crossedMatrix.forEach(function(row, idx){
+      console.groupCollapsed("row-"+idx);
+      
+      const filteredNumbers = row.map(col=>col.getData("number")).filter(number=>!!number).reverse();
+      const calcedNumbers = _extractNumber(self, filteredNumbers);      
+      
+      const emptyArr = Array(crossedMatrix.length-calcedNumbers.length).fill(null);
+      
+      const numbersMatrix = reverse ? calcedNumbers.concat(emptyArr) : emptyArr.concat(calcedNumbers.reverse());
 
-    Common.event.unbind(document, "keydown", handleKeyDown);
-    Common.event.bind(document, "keydown", handleKeyDown);
+      const reverseRow = [].concat(row).reverse();
+      numbersMatrix.forEach(function(number, idx){
+        const baseCol = reverse ? reverseRow[idx] : row[idx];
+        
+        baseCol.setNumber(number);
+      });
+      
+      console.groupEnd("row-"+idx);
+    });
   }
 
   return {
     init: function(){
       _init(this);
+    },
+    createNumber: function(count){
+      _createNumber(this, (count?count:1));
+    },
+    move: function(vector){
+      if( vector ){
+        _move(this, vector);
+      }
     }
   }
 })();
 
 Common.bindElement(Board, {
   parent: null,
-  size: "medium"
+  size: "medium",
+  defaultNumber: 2,
+  defaultCount: 2
 });

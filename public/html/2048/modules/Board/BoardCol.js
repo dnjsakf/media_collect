@@ -1,11 +1,12 @@
-const BoardCol = function(_config, el){
+const BoardCol = function(_config, _el){
   const self = this;
+  const config = Object.assign({}, _config);
   const datas = {}
   const insts = {}
   const doms = {}
-  const config = _config;
   
-  self.el = el;
+  self.el = _el;
+  self.el.instance = self;
 
   self.setConfig = (k,v)=>{ config[k] = v; }
   self.getConfig = (k)=>config[k];      
@@ -53,13 +54,10 @@ BoardCol.prototype = (function(){
     const index = self.getConfig("index");
     const size = self.getConfig("size");
     
-    self.el.className = `pannel col r${pIndex} c${index} w${size.width} h${size.height} blank`;
-    self.el.style.left = ((size.width*(index-1))+(5*index))+"px";
-    self.el.style.top = ((size.height*(pIndex-1))+(5*pIndex))+"px";
-    self.el.style.paddingTop = (parseInt(size.height/2)-15)+"px"
-
-    self.setData("index", index);
-    self.setData("pIndex", pIndex);
+    self.el.className = `pannel col r${pIndex} c${index} s${size} empty`;
+    self.el.style.left = ((size*(index-1))+(5*index))+"px";
+    self.el.style.top = ((size*(pIndex-1))+(5*pIndex))+"px";
+    self.el.style.paddingTop = (parseInt(size/2)-15)+"px"
   }
   
   function _initEvent(self){
@@ -69,52 +67,35 @@ BoardCol.prototype = (function(){
     col.addEventListener("mouseup", self.handleMouseUp());
   }
 
-  function _appendNumber(self, number){
+  function _resetNumber(self){
     Array.from(self.el.children).forEach(children=>children.remove());
+    self.el.classList.add("empty");
     self.el.style.removeProperty("background-color");
+    self.setData("number", null);
+  }
+
+  function _setNumber(self, number){
+    _resetNumber(self);
 
     if( number ){
       const a = document.createElement("a");
       const text = document.createTextNode(number);
       a.appendChild(text);
   
-      if( self.el.classList.contains("blank") ){
-        self.el.classList.remove("blank");
-      }
       self.el.style.backgroundColor = `rgba(144,80,100,0.${number})`;
       self.el.appendChild(a);
     }
+    
     self.setData("number", number);
   }
-
-  function _removeNumber(self){
-    Array.from(self.el.children).forEach(children=>children.remove());
-    self.el.classList.add("blank");
-    self.el.style.removeProperty("background-color");
-    self.setData("number", null);
-  }
-
-  function _move(self, moving){
-    if( moving === "up" ){
-
-    } else if ( moving === "down" ){
-
-    } else if ( moving === "left" ){
-
-    } else if ( moving === "right"){
-      
-    }
-  }
-
+  
   return {
     init: function(){
       _init(this);
-    }, move: function(moving){
-      _move(this, moving);
-    }, appendNumber: function(number){
-      _appendNumber(this, number);
-    }, removeNumber: function(){
-      _removeNumber(this);
+    }, setNumber: function(number){
+      _setNumber(this, number);
+    }, resetNumber: function(){
+      _resetNumber(this);
     }
   }
 })();
