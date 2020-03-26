@@ -14,9 +14,28 @@ Common.prototype = (function(){
     return regex.test(navigator.userAgent);
   }
 
+  function _animate(element, animation_name, ms){
+    if( !element.classList.contains("animated") ){
+      element.classList.add(animation_name, "animated", "ms"+ms);
+      setTimeout(function(){
+        element.classList.remove(animation_name, "animated", "ms"+ms);
+      }, ms+10);
+    }
+  }
+
+  function _getAlpha(number, count){
+    return number > 2 ? _getAlpha(number/2, ++count) : count
+  }
+
   return {
     isMobile: function(){
       return _isMobile();
+    },
+    animate: function(element, animation_name, ms){
+      _animate(element, animation_name, ms||300);
+    },
+    getAlpha: function(number){
+      return _getAlpha(number, 1);
     }
   }
 })();

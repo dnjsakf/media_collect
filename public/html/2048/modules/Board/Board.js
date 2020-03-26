@@ -91,12 +91,14 @@ Board.prototype = (function(){
       
       const cols = Array(matrixSize).fill(1).map(function(colInc, colIdx){
         const colIndex = colIdx+colInc;
-        return document.createElement("div").BoardCol({
+        const col = document.createElement("div").BoardCol({
           parent: row,
           index: colIndex,
           id: "c"+colIndex,
           size: self.getData("boxSize")
         });
+
+        return col;
       });
       
       row.setCols(cols);
@@ -148,7 +150,10 @@ Board.prototype = (function(){
     
     if( emptyCols.length > 0 ){
       for(let i=0; i<count; i++){
-        emptyCols[parseInt(Math.random()*emptyCols.length)].setNumber(defaultNumber);
+        const randCol = emptyCols[parseInt(Math.random()*emptyCols.length)];
+        randCol.setNumber(defaultNumber);
+
+        self.animate(randCol.el, "pulse");
       }
     }
   }
@@ -157,6 +162,24 @@ Board.prototype = (function(){
     if( numbers && Array.isArray(numbers) && numbers.length > 1 ){
       const storage = [];
       numbers.reduce(function(prev, crnt, _idx){
+        let returnNumber = crnt;
+
+        if( prev === crnt ){
+          storage.push( prev + crnt );
+          returnNumber = null;
+        } else {
+          if( prev ){
+            storage.push( prev );
+          }
+        }
+
+        if( returnNumber && _idx === numbers.length-1 ){
+          storage.push( crnt );
+        }
+
+        return returnNumber;
+
+        /*
         const throwNumber = prev === crnt ? crnt+prev : crnt;
         
         if( throwNumber === crnt ){
@@ -167,11 +190,46 @@ Board.prototype = (function(){
         }
         
         return throwNumber;
+        */
       });
       return storage;
     } else {
       return numbers;
     }
+  }
+  
+  function _resetMatrix(self, cross, reverse){
+    const crossedMatrix = self.getData("matrix").cross(cross, reverse);
+    
+    let checker = 0;
+    let changer = 0;
+    crossedMatrix.forEach(function(row, idx){
+      console.groupCollapsed("row-"+idx);
+      
+      const filteredNumbers = row.map(col=>col.getData("number")).filter(number=>!!number).reverse();
+      const calcedNumbers = _extractNumber(self, filteredNumbers);      
+      
+      const emptyArr = Array(crossedMatrix.length-calcedNumbers.length).fill(null);
+      
+      const numbersMatrix = reverse ? calcedNumbers.concat(emptyArr) : emptyArr.concat(calcedNumbers.reverse());
+
+      const reverseRow = [].concat(row).reverse();
+      numbersMatrix.forEach(function(number, idx){
+        const baseCol = reverse ? reverseRow[idx] : row[idx];
+        const baseNumber = baseCol.getData("number");
+
+        if( baseNumber !== number ){
+          baseCol.setNumber(number);
+        } else {
+          changer += 1;
+        }
+        checker += 1; 
+      });
+      
+      console.groupEnd("row-"+idx);
+    });
+
+    return checker !== changer;
   }
   
   function _move(self, vector){
@@ -189,43 +247,14 @@ Board.prototype = (function(){
       cross = false;
     }
     
-    _reset(self, cross, reverse);
-    _createNumber(self, 1);
-    _moveAnimation(self, vector);
-  }
-  
-  function _moveAnimation(self, vector){
-    if( !self.el.classList.contains("move") ){
-      self.el.classList.add("move", vector);
-      setTimeout(function(){
-        self.el.classList.remove("move", vector);
-      }, 310);
-    }
-  }
-  
-  function _reset(self, cross, reverse){
-    
-    const crossedMatrix = self.getData("matrix").cross(cross, reverse);
-    
-    crossedMatrix.forEach(function(row, idx){
-      console.groupCollapsed("row-"+idx);
-      
-      const filteredNumbers = row.map(col=>col.getData("number")).filter(number=>!!number).reverse();
-      const calcedNumbers = _extractNumber(self, filteredNumbers);      
-      
-      const emptyArr = Array(crossedMatrix.length-calcedNumbers.length).fill(null);
-      
-      const numbersMatrix = reverse ? calcedNumbers.concat(emptyArr) : emptyArr.concat(calcedNumbers.reverse());
+    const create = _resetMatrix(self, cross, reverse);
+    const scoreInst = self.getInst("status").getInst("score");
+    if( create ){
+      _createNumber(self, 1);
+      // self.animate(self.el, "move_"+vector);
 
-      const reverseRow = [].concat(row).reverse();
-      numbersMatrix.forEach(function(number, idx){
-        const baseCol = reverse ? reverseRow[idx] : row[idx];
-        
-        baseCol.setNumber(number);
-      });
-      
-      console.groupEnd("row-"+idx);
-    });
+      scoreInst.setMatrixScore(self.getData("matrix"))
+    }
   }
 
   return {

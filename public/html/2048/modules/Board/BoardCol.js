@@ -17,7 +17,7 @@ const BoardCol = function(_config, _el){
   self.setDom = (k,v)=>{ doms[k] = v; }
   self.getDom = (k)=>doms[k];
 
-  Common.extends.bind(self)([Handler]);
+  Common.extends.bind(self)([Common,Handler]);
 }
 
 BoardCol.prototype = (function(){
@@ -81,8 +81,10 @@ BoardCol.prototype = (function(){
       const a = document.createElement("a");
       const text = document.createTextNode(number);
       a.appendChild(text);
+
+      console.log( self.getAlpha(number) );
   
-      self.el.style.backgroundColor = `rgba(144,80,100,0.${number})`;
+      self.el.style.backgroundColor = `rgba(255, 71, 0, ${self.getAlpha(number)*2}%)`;
       self.el.appendChild(a);
     }
     
